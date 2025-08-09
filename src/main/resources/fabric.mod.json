@@ -18,7 +18,7 @@
 	"license": "${license}",
 	"icon": "assets/${modId}/icon.png",
 	"mixins": [
-		"${modId}.mixins.json"
+		"dronebox.mixins.json"
 	],
 	"depends": {
 		"minecraft": ">=${mc}",
@@ -29,9 +29,11 @@
 	},
 	"entrypoints": {
 		"main": [
-			"io.github.username.modid.ModId"
+          "net.Neomoon.dronebox.CentralDroneInit",
+			"net.Neomoon.dronebox.DroneboxMain"
 		],
 		"client": [
+			"net.Neomoon.dronebox.CentralDroneClient"
 		]
 	}
 }
