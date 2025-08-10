@@ -26,29 +26,29 @@ public class DroneControlScreen extends Screen {
 		int y = 20;
 		int buttonWidth = 200;
 		int buttonHeight = 20;
-		List<String> linked = DroneControllerItem.getLinkedDroneUUIDs(controllerStack);
-
-		if (linked.isEmpty()) {
-			this.addDrawableChild(ButtonWidget.builder(Text.literal("No linked drones"), b -> this.close())
-				.position(this.width / 2 - buttonWidth / 2, y)
-				.size(buttonWidth, buttonHeight)
-				.build());
-			y += 24;
-		} else {
-			for (String uuidStr : linked) {
-				String label = "Drone " + uuidStr.substring(0, Math.min(8, uuidStr.length()));
-
-
-				final String droneUuid = uuidStr;
-
-				this.addDrawableChild(ButtonWidget.builder(Text.literal(label), btn -> {
-
-					sendTogglePacket(droneUuid);
-
-				}).position(this.width / 2 - buttonWidth / 2, y).size(buttonWidth, buttonHeight).build());
-				y += 24;
-			}
-		}
+//		List<String> linked = DroneControllerItem.getLinkedDroneUUIDs(controllerStack);
+//
+//		if (linked.isEmpty()) {
+//			this.addDrawableChild(ButtonWidget.builder(Text.literal("No linked drones"), b -> this.close())
+//				.position(this.width / 2 - buttonWidth / 2, y)
+//				.size(buttonWidth, buttonHeight)
+//				.build());
+//			y += 24;
+//		} else {
+//			for (String uuidStr : linked) {
+//				String label = "Drone " + uuidStr.substring(0, Math.min(8, uuidStr.length()));
+//
+//
+//				final String droneUuid = uuidStr;
+//
+//				this.addDrawableChild(ButtonWidget.builder(Text.literal(label), btn -> {
+//
+//					sendTogglePacket(droneUuid);
+//
+//				}).position(this.width / 2 - buttonWidth / 2, y).size(buttonWidth, buttonHeight).build());
+//				y += 24;
+//			}
+//		}
 
 
 		this.addDrawableChild(ButtonWidget.builder(Text.literal("Done"), (b) -> this.close())

@@ -2,13 +2,17 @@ package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.network.MoveC2SPayload;
+import net.Neomoon.dronebox.python.PythonIDE;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
+import java.nio.charset.MalformedInputException;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +25,7 @@ public class KeyInterceptor {
 	private static KeyBinding keySneak;
 	private static KeyBinding keyYawLeft;
 	private static KeyBinding keyYawRight;
+	private static KeyBinding testPythonIde;
 
 	public static void register() {
 		keyForward = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dronecontrol.forward", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_W, "category.dronecontrol"));
@@ -31,6 +36,7 @@ public class KeyInterceptor {
 		keySneak = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dronecontrol.sneak", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_SHIFT, "category.dronecontrol"));
 		keyYawLeft = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dronecontrol.yaw_left", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Q, "category.dronecontrol"));
 		keyYawRight = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dronecontrol.yaw_right", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_E, "category.dronecontrol"));
+		testPythonIde = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dronecontrol.test_key", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Y, "category.dronecontrol"));
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null) return;
@@ -52,13 +58,14 @@ public class KeyInterceptor {
 			if (keyYawLeft.isPressed()) yawDelta -= 5f;
 			if (keyYawRight.isPressed()) yawDelta += 5f;
 
+			if (testPythonIde.isPressed()) MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty()));
+
 			if (forward != 0 || strafe != 0 || jump || sneak || yawDelta != 0) {
 				List<String> droneUUIDs = DroneControllerItem.getLinkedDroneUUIDs(held);
 				for (String uuidStr : droneUUIDs) {
 					UUID uuid = UUID.fromString(uuidStr);
 
 					MoveC2SPayload p = new MoveC2SPayload(uuid.toString(), forward, strafe, jump, sneak, yawDelta);
-
 					ClientPlayNetworking.send(p);
 				}
 			}

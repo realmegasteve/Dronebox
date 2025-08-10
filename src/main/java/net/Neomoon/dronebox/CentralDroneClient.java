@@ -12,7 +12,6 @@ public class CentralDroneClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		EntityRendererRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, DroneRenderer::new);
 
-KeyInterceptor.register();
-
+		KeyInterceptor.register();
 	}
 }
