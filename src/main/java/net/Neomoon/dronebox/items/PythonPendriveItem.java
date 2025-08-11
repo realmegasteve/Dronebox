@@ -20,7 +20,7 @@ public class PythonPendriveItem extends Item {
 	@Override
 	public ActionResult use(World world, PlayerEntity player, Hand hand) {
 
-		MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty()))
+		MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty(), player.getStackInHand(hand)));
 
 		return ActionResult.SUCCESS;
 	}
