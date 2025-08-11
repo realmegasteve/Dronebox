@@ -12,6 +12,7 @@ import net.minecraft.util.Identifier;
 
 public class ModItems {
 	public static final Item DRONE_CONTROLLER = registerItem("drone_controller", new DroneControllerItem(new Item.Settings().maxCount(1).registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"drone_controller")))));
+	public static final Item PYTHON_PENDRIVE = registerItem("python_pendrive", new Item(new Item.Settings().maxCount(1).registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"python_pendrive")))));
 
 	private static Item registerItem(String name, Item item) {
 		return Registry.register(Registries.ITEM, Identifier.of(DroneboxMain.MOD_ID, name), item);
@@ -23,6 +24,7 @@ public class ModItems {
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> {
 			entries.add(DRONE_CONTROLLER);
+			entries.add(PYTHON_PENDRIVE);
 		});
 	}
 }
