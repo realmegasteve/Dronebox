@@ -5,6 +5,7 @@ import net.Neomoon.dronebox.items.ModItems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.SpawnGroup;
@@ -132,6 +133,12 @@ public class CentralDroneInit implements ModInitializer {
 			float tiltSmooth = 0.2f;
 			this.pitch += (targetPitch - this.pitch) * tiltSmooth;
 			this.roll  += (targetRoll - this.roll) * tiltSmooth;
+
+
+			//Python test
+			
+
+
 		}
 
 		@Override
