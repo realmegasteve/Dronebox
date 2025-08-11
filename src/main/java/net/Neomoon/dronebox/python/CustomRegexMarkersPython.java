@@ -1,7 +1,7 @@
 package net.Neomoon.dronebox.python;
 
 public class CustomRegexMarkersPython {
-	public static String returnMarker = "ççReTuRn¡¡";
-	public static String tabMarker = "\t";
+	public static String returnMarker = "\uE000";
+	public static String tabMarker = "\uE001";
 
 }

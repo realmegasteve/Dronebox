@@ -1,20 +1,33 @@
 package net.Neomoon.dronebox.python;
 
+import com.mojang.datafixers.kinds.IdF;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.MultilineText;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.MultilineTextWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.toast.SystemToast;
 import net.minecraft.text.Text;
+import net.minecraft.util.Colors;
+
+import java.util.regex.Pattern;
 
 public class PythonIDE extends Screen {
 	public PythonIDE(Text title) {
 		super(title);
 	}
 
+	String output = "*Empty*";
+	MinecraftPythonInterpreter python = new MinecraftPythonInterpreter().init();
+	MultilineTextWidget codeOutputLog;
+
+	public void setPythonOutputText(String s){
+		output = s;
+	}
+
 	@Override
 	protected void init() {
+
 		PythonTextFieldWidget codeInput = new PythonTextFieldWidget(
 			this.textRenderer, 40, 70, 200, 200, Text.of("Python Code")
 		);
@@ -32,20 +45,21 @@ public class PythonIDE extends Screen {
 		this.addDrawableChild(codeInput);
 
 
-		ButtonWidget buttonWidget = ButtonWidget.builder(Text.of("Hello World"), (btn) -> {
-			// When the button is clicked, we can display a toast to the screen.
-			this.client.getToastManager().add(
-				SystemToast.create(this.client, SystemToast.Type.NARRATOR_TOGGLE, Text.of(codeInput.getText()), Text.of(codeInput.getText()))
-			);
-		}).dimensions(40, 40, 120, 20).build();
-		// x, y, width, height
-		// It's recommended to use the fixed height of 20 to prevent rendering issues with the button
-		// textures.
+		ButtonWidget buttonWidget = ButtonWidget.builder(Text.of("Run code"), (btn) -> {
+			try {
+				python.run(codeInput.getText().replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n"));
+			} catch (Exception e) {
+				setPythonOutputText(e.getMessage());
+			}
+			}).dimensions(40, 40, 120, 20).build();
 
-		// Register the button widget.
 		this.addDrawableChild(buttonWidget);
 
-
+		codeOutputLog = new MultilineTextWidget(
+			Text.of(output),
+			this.getTextRenderer()
+		);
+		this.addDrawableChild(codeOutputLog);
 
 	}
 
@@ -57,6 +71,12 @@ public class PythonIDE extends Screen {
 		// We'll subtract the font height from the Y position to make the text appear above the button.
 		// Subtracting an extra 10 pixels will give the text some padding.
 		// textRenderer, text, x, y, color, hasShadow
-		context.drawText(this.textRenderer, "Special Button", 40, 40 - this.textRenderer.fontHeight - 10, 0xFFFFFFFF, true);
+		context.drawText(this.textRenderer, "Python IDE", 40, 10 - this.textRenderer.fontHeight - 10, 0xFFFFFFFF, true);
+
+		codeOutputLog.setMessage(Text.of(output));
+
+		MultilineText console = MultilineText.create(MinecraftClient.getInstance().textRenderer, Text.of(python.console()));
+
+		console.drawWithShadow(context, 250,70, 10, Colors.ALTERNATE_WHITE);
 	}
 }

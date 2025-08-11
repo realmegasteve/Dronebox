@@ -5,6 +5,8 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -319,11 +321,11 @@ public class PythonTextFieldWidget extends ClickableWidget {
                         this.setSelectionEnd(0);
                         return true;
                     } else if (Screen.isCopy(keyCode)) {
-                        MinecraftClient.getInstance().keyboard.setClipboard(this.getSelectedText());
+                        MinecraftClient.getInstance().keyboard.setClipboard(this.getSelectedText().replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n"));
                         return true;
                     } else if (Screen.isPaste(keyCode)) {
                         if (this.isEditable()) {
-                            this.write(MinecraftClient.getInstance().keyboard.getClipboard());
+                            this.write(MinecraftClient.getInstance().keyboard.getClipboard().replaceAll(Pattern.quote("\t"), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote( "    "), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote("\n"), CustomRegexMarkersPython.returnMarker));
                         }
 
                         return true;
@@ -340,7 +342,7 @@ public class PythonTextFieldWidget extends ClickableWidget {
                         return false;
                     }
                 case 261:
-                    if (this.editable) {
+                    if (this.editable) { //backspace
                         this.erase(1);
                     }
 
@@ -418,7 +420,7 @@ public class PythonTextFieldWidget extends ClickableWidget {
 
 			int lineY = this.getY() + 6;
 			int maxWidth = getMaxWidth();
-			int lineHeight = 11;
+			int lineHeight = 10;
 
 
 			int drawingPenIndex = 0;

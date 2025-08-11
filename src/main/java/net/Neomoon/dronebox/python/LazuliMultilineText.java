@@ -111,7 +111,7 @@ public interface LazuliMultilineText {
 						return true;
 					});
 					String plain = sb.toString();
-					plain = plain.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "|   ");
+					plain = plain.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), " ┃ ");
 
 					String[] parts = plain.split(Pattern.quote(CustomRegexMarkersPython.returnMarker));
 
@@ -123,7 +123,7 @@ public interface LazuliMultilineText {
 					}
 				}
 
-				System.out.println(log);
+				//System.out.println(log);
 
 			}
 
