@@ -2,10 +2,14 @@ package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.items.ModItems;
+import net.Neomoon.dronebox.python.CustomRegexMarkersPython;
+import net.Neomoon.dronebox.python.MinecraftPythonInterpreter;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.SpawnGroup;
@@ -18,6 +22,8 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -30,6 +36,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.registry.Registries;
+
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 
 public class CentralDroneInit implements ModInitializer {
 	public static final Identifier DRONE_ID = Identifier.of(DroneboxMain.MOD_ID, "drone");
@@ -66,6 +75,8 @@ public class CentralDroneInit implements ModInitializer {
 		public double prevYaw;
 		public double prevPitch;
 
+		MinecraftPythonInterpreter py = new MinecraftPythonInterpreter();
+
 		public static DefaultAttributeContainer.Builder createDroneAttributes() {
 			return MobEntity.createMobAttributes()
 				.add(EntityAttributes.MAX_HEALTH, 20.0)
@@ -77,6 +88,25 @@ public class CentralDroneInit implements ModInitializer {
 		public Drone(EntityType<? extends Drone> type, World world) {
 			super(type, world);
 			this.setNoGravity(true);
+			py.set(this, "drone");
+		}
+
+		public void loadPythonScript(String code){
+			NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+			NbtCompound root = comp.copyNbt();
+
+			root.put("code", NbtString.of(code));
+			this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+
+			try {
+				py.run(code.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n"));
+				py.runSetup();
+			} catch (ExecutionException | InterruptedException e) {
+				//clear code when crashing
+				root.put("code", NbtString.of(""));
+				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+				e.printStackTrace();
+			}
 		}
 
 		@Override
@@ -95,12 +125,33 @@ public class CentralDroneInit implements ModInitializer {
 			this.prevPitch = this.pitch;
 			this.prevRoll = this.roll;
 
+			//Python test
+			NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+			NbtCompound root = comp.copyNbt();
+			String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n");
+			if (loadedCode != ""){
+				try {
+					py.run(loadedCode);
+					py.runTick();
+				} catch (ExecutionException | InterruptedException e) {
+					//clear code when crashing
+					root.put("code", NbtString.of(""));
+					this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+					e.printStackTrace();
+				}
+			}
+
 
 			this.yaw += (float) this.yawRate;
-
-
 			this.move(MovementType.SELF, this.getVelocity());
 
+			if (false) {
+				Drone drone = this;
+				drone.setManualVelocity(0, 0.4, 0);
+				drone.setVelocity(0, 0.4, 0);
+				drone.getY();
+				//drone.setRotationVelocity(1,0,0);
+			}
 
 			Vec3d velocity = this.getVelocity();
 			double vx = velocity.x;
@@ -110,23 +161,27 @@ public class CentralDroneInit implements ModInitializer {
 			double targetPitch = 0.0;
 			double targetRoll = 0.0;
 
-			if (horizontalSpeed > 1e-4) {
-				double nx = vx / horizontalSpeed;
-				double nz = vz / horizontalSpeed;
+			if (loadedCode == "") {
+				if (horizontalSpeed > 1e-4) {
+					double nx = vx / horizontalSpeed;
+					double nz = vz / horizontalSpeed;
 
-				double dirSmooth = 0.3;
-				smoothedNx += (nx - smoothedNx) * dirSmooth;
-				smoothedNz += (nz - smoothedNz) * dirSmooth;
+					double dirSmooth = 0.3;
+					smoothedNx += (nx - smoothedNx) * dirSmooth;
+					smoothedNz += (nz - smoothedNz) * dirSmooth;
 
-				targetPitch = -smoothedNz * 15.0;
-				targetRoll  =  smoothedNx * 15.0;
+					targetPitch = -smoothedNz * 15.0;
+					targetRoll = smoothedNx * 15.0;
+				} else {
+
+					double uprightSmooth = 0.1;
+					smoothedNx += (0 - smoothedNx) * uprightSmooth;
+					smoothedNz += (0 - smoothedNz) * uprightSmooth;
+					targetPitch = 0;
+					targetRoll = 0;
+				}
 			} else {
 
-				double uprightSmooth = 0.1;
-				smoothedNx += (0 - smoothedNx) * uprightSmooth;
-				smoothedNz += (0 - smoothedNz) * uprightSmooth;
-				targetPitch = 0;
-				targetRoll = 0;
 			}
 
 
@@ -135,8 +190,6 @@ public class CentralDroneInit implements ModInitializer {
 			this.roll  += (targetRoll - this.roll) * tiltSmooth;
 
 
-			//Python test
-			
 
 
 		}

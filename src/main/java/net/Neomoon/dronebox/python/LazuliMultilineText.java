@@ -2,6 +2,7 @@ package net.Neomoon.dronebox.python;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.fabricmc.api.EnvType;
@@ -14,18 +15,29 @@ import net.minecraft.text.OrderedText;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Colors;
 import net.minecraft.util.Language;
 import net.minecraft.util.math.MathHelper;
+import org.python.antlr.ast.Str;
 import org.python.jline.internal.Nullable;
 
 import javax.swing.text.html.StyleSheet;
 
 @Environment(EnvType.CLIENT)
 public interface LazuliMultilineText {
+
+	int minX = 0;
+	int minY = 0;
+	int maxX = 999999;
+	int maxY = 999999;
+
 	LazuliMultilineText EMPTY = new LazuliMultilineText() {
 		@Override
 		public void drawCenterWithShadow(DrawContext context, int x, int y) {
 		}
+
+		@Override
+		public void setCursor(int cursor){}
 
 		@Override
 		public void drawCenterWithShadow(DrawContext context, int x, int y, int lineHeight, int color) {
@@ -44,6 +56,11 @@ public interface LazuliMultilineText {
 		@Override
 		public Style getStyleAtCentered(int x, int y, int i, double mouseX, double mouseY) {
 			return null;
+		}
+
+		@Override
+		public void setCropping(int MinX, int MinY, int MaxX, int MaxY){
+
 		}
 
 		@Nullable
@@ -81,6 +98,17 @@ public interface LazuliMultilineText {
 			private List<LazuliMultilineText.Line> lines;
 			@Nullable
 			private Language language;
+			private int minX = 0;
+			private int minY = 0;
+			private int maxX = 999999;
+			private int maxY = 999999;
+
+			private int cursor;
+
+			public void setCursor(int Cursor){
+				cursor = Cursor;
+			}
+
 
 			@Override
 			public void drawCenterWithShadow(DrawContext context, int x, int y) {
@@ -98,10 +126,18 @@ public interface LazuliMultilineText {
 			}
 
 			@Override
+			public void setCropping(int MinX, int MinY, int MaxX, int MaxY){
+				minX = MinX;
+				minY = MinY;
+				maxX = MaxX;
+				maxY = MaxY;
+			}
+
+			@Override
 			public void drawWithShadow(DrawContext context, int x, int y, int lineHeight, int color) {
 				int i = y;
-
-				String log = "";
+				int count = 0;
+				int lineStart = 0;
 
 				for (LazuliMultilineText.Line line : this.getLines()) {
 
@@ -111,15 +147,38 @@ public interface LazuliMultilineText {
 						return true;
 					});
 					String plain = sb.toString();
+
+					//Shennanigans to keep cursor pos
+					String preCursor = plain.substring(0, Math.max(Math.min(cursor, plain.length() - 1), 0));
+					preCursor = preCursor.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), " ┃ ");
+					cursor = preCursor.length();
+
 					plain = plain.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), " ┃ ");
+
+
+
+
 
 					String[] parts = plain.split(Pattern.quote(CustomRegexMarkersPython.returnMarker));
 
 					for (String thisString : parts) {
-						log = log + " /////// " + thisString;
-						OrderedText ot = OrderedText.styledForwardsVisitedString(thisString, Style.EMPTY);
-						context.drawTextWithShadow(renderer, ot, x, i, color);
+						//draw the text itself
+						String trimmedString = renderer.trimToWidth(thisString, maxX - x);
+						OrderedText ot = OrderedText.styledForwardsVisitedString(trimmedString, Style.EMPTY);
+						if (i > minY && i + lineHeight < maxY) {
+							context.drawTextWithShadow(renderer, ot, x, i, color);
+						}
+
+						if (cursor >= lineStart && cursor <= lineStart + thisString.length()) {
+							//draw the cursor
+							int cursorXOffset = renderer.getWidth(OrderedText.styledForwardsVisitedString(thisString.substring(0, cursor - lineStart), Style.EMPTY));
+							context.fill(x + cursorXOffset - 1, i - 1, x + cursorXOffset + 1, i + 9, Colors.WHITE);
+						}
+
+
 						i += lineHeight;
+						lineStart += thisString.length();
+						cursor--;
 					}
 				}
 
@@ -145,7 +204,7 @@ public interface LazuliMultilineText {
 				List<LazuliMultilineText.Line> list = this.getLines();
 				int j = MathHelper.floor((mouseY - y) / i);
 				if (j >= 0 && j < list.size()) {
-					LazuliMultilineText.Line line = (LazuliMultilineText.Line)list.get(j);
+					LazuliMultilineText.Line line = list.get(j);
 					int k = x - line.width / 2;
 					if (mouseX < k) {
 						return null;
@@ -167,7 +226,7 @@ public interface LazuliMultilineText {
 					List<LazuliMultilineText.Line> list = this.getLines();
 					int j = MathHelper.floor((mouseY - y) / i);
 					if (j >= 0 && j < list.size()) {
-						LazuliMultilineText.Line line = (LazuliMultilineText.Line)list.get(j);
+						LazuliMultilineText.Line line = list.get(j);
 						int k = MathHelper.floor(mouseX - x);
 						return renderer.getTextHandler().getStyleAt(line.text, k);
 					} else {
@@ -178,7 +237,7 @@ public interface LazuliMultilineText {
 
 			private List<LazuliMultilineText.Line> getLines() {
 				Language language = Language.getInstance();
-				if (this.lines != null && language == this.language) { return this.lines;};
+				if (this.lines != null && language == this.language) { return this.lines;}
 
 				this.language = language;
 				List<StringVisitable> list = new ArrayList();
@@ -192,7 +251,7 @@ public interface LazuliMultilineText {
 				List<StringVisitable> list2 = list.subList(0, i);
 
 				for (int j = 0; j < list2.size(); j++) {
-					StringVisitable stringVisitable = (StringVisitable)list2.get(j);
+					StringVisitable stringVisitable = list2.get(j);
 					OrderedText orderedText = Language.getInstance().reorder(stringVisitable);
 					if (j == list2.size() - 1 && i == maxLines && i != list.size()) {
 						StringVisitable stringVisitable2 = renderer.trimToWidth(stringVisitable, renderer.getWidth(stringVisitable) - renderer.getWidth(ScreenTexts.ELLIPSIS));
@@ -235,8 +294,12 @@ public interface LazuliMultilineText {
 
 	int getMaxWidth();
 
+	public void setCropping(int MinX, int MinY, int MaxX, int MaxY);
+
+	void setCursor(int cursor);
+
 	@Environment(EnvType.CLIENT)
-	public record Line(OrderedText text, int width) {
+	record Line(OrderedText text, int width) {
 	}
 
 

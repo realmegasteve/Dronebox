@@ -64,6 +64,7 @@ public class PythonTextFieldWidget extends ClickableWidget {
     private long lastSwitchFocusTime;
     private int textX;
     private int textY;
+	public int scroll = 0;
 
     public PythonTextFieldWidget(TextRenderer textRenderer, int width, int height, Text text) {
         this(textRenderer, 0, 0, width, height, text);
@@ -400,7 +401,15 @@ public class PythonTextFieldWidget extends ClickableWidget {
         this.setCursor(this.textRenderer.trimToWidth(string, i).length() + this.firstCharacterIndex, Screen.hasShiftDown());
     }
 
-    public void playDownSound(SoundManager soundManager) {
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		scroll -= (int) (verticalAmount * 20);
+		scroll = Math.max(0, scroll);
+		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+	}
+
+
+	public void playDownSound(SoundManager soundManager) {
     }
 
 	public int getMaxWidth(){
@@ -429,51 +438,48 @@ public class PythonTextFieldWidget extends ClickableWidget {
 				.map(OrderedText::toString)
 				.toList();
 
-			int highlightLineY = lineY;
-
-			for (String line : lines) {
-				int lineLength = line.length();
-
-				int lineStart = drawingPenIndex;
-				int lineEnd = drawingPenIndex + lineLength;
-
-				int selStart = Math.max(selectionStart, lineStart);
-				int selEnd = Math.min(selectionEnd, lineEnd);
-
-				if (selectionStart != selectionEnd) {
-					//draw selection
-					if (selStart < selEnd) {
-						int startOffset = selStart - lineStart;
-						int endOffset = selEnd - lineStart;
-
-						int xStart = this.textX + getTextWidth(line.substring(0, startOffset));
-						int xEnd = this.textX +getTextWidth(line.substring(0, endOffset));
-
-						context.fill(xStart, highlightLineY - 1, xEnd, highlightLineY + 9, 0x8855AAFF);
-					}
-				}
-
-				if (lineStart < getCursor() && lineEnd > getCursor()){
-					//draw cursor
-					int cursorX = this.textX + getTextWidth(line.substring(0, getCursor() - lineStart));
-					context.fill(cursorX -1, highlightLineY - 1, cursorX + 1, highlightLineY + 9, Colors.WHITE);
-				}
-
-				drawingPenIndex += lineLength + 1; // +1 for the newline character
-				highlightLineY += 11; // line height
-			}
+//			int highlightLineY = lineY;
+//
+//			for (String line : lines) {
+//				int lineLength = line.length();
+//
+//				int lineStart = drawingPenIndex;
+//				int lineEnd = drawingPenIndex + lineLength;
+//
+//				int selStart = Math.max(selectionStart, lineStart);
+//				int selEnd = Math.min(selectionEnd, lineEnd);
+//
+//				if (selectionStart != selectionEnd) {
+//					//draw selection
+//					if (selStart < selEnd) {
+//						int startOffset = selStart - lineStart;
+//						int endOffset = selEnd - lineStart;
+//
+//						int xStart = this.textX + getTextWidth(line.substring(0, startOffset));
+//						int xEnd = this.textX +getTextWidth(line.substring(0, endOffset));
+//
+//						context.fill(xStart, highlightLineY - 1, xEnd, highlightLineY + 9, 0x8855AAFF);
+//					}
+//				}
+//
+//				if (lineStart < getCursor() && lineEnd > getCursor()){
+//					//draw cursor
+//					int cursorX = this.textX + getTextWidth(line.substring(0, getCursor() - lineStart));
+//					context.fill(cursorX -1, highlightLineY - 1 - scroll, cursorX + 1, highlightLineY + 9 - scroll, Colors.WHITE);
+//				}
+//
+//				drawingPenIndex += lineLength + 1; // +1 for the newline character
+//				highlightLineY += 11; // line height
+//			}
 
 
 
 			int textColor = this.editable ? this.editableColor : this.uneditableColor;
 
 			LazuliMultilineText multilineText = LazuliMultilineText.create(this.textRenderer, Text.of(this.getText()), 999999999);
-			multilineText.drawWithShadow(context, this.textX, lineY, lineHeight, textColor);
-
-
-			if (this.placeholder != null && this.text.isEmpty() && !this.isFocused()) {
-				multilineText.drawWithShadow(context, this.textX, lineY, lineHeight, textColor);
-			}
+			multilineText.setCropping(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height);
+			multilineText.setCursor(this.getCursor());
+			multilineText.drawWithShadow(context, this.textX, lineY - scroll, lineHeight, textColor);
 		}
 	}
 

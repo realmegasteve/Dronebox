@@ -1,5 +1,6 @@
 package net.Neomoon.dronebox.items;
 
+import com.mojang.authlib.Environment;
 import net.Neomoon.dronebox.CentralDroneInit;
 import net.Neomoon.dronebox.python.MinecraftPythonInterpreter;
 import net.Neomoon.dronebox.python.PythonIDE;
@@ -29,8 +30,9 @@ public class PythonPendriveItem extends Item {
 	@Override
 	public ActionResult use(World world, PlayerEntity player, Hand hand) {
 
-		MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty(), player.getStackInHand(hand)));
-
+		if (world.isClient) {
+			MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty(), player.getStackInHand(hand)));
+		}
 		return ActionResult.SUCCESS;
 	}
 
@@ -44,18 +46,12 @@ public class PythonPendriveItem extends Item {
 		return ActionResult.PASS;
 	}
 
-	private void writeCode(ItemStack drive, LivingEntity drone){
+	private void writeCode(ItemStack drive, CentralDroneInit.Drone drone){
 		//load drive code
 		NbtComponent comp2 = drive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root2 = comp2.copyNbt();
 		String loadedCode = root2.getString("code", "");
 
-		//set drone code
-		NbtComponent comp = drone.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-
-		root.put("code", NbtString.of(loadedCode));
-
-		drone.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+		drone.loadPythonScript(loadedCode);
 	}
 }

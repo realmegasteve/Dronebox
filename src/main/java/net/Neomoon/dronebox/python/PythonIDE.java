@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 public class PythonIDE extends Screen {
 	public PythonIDE(Text title, ItemStack pendrive) {super(title); this.pendrive = pendrive;}
 
+	String presetPythonCode = """
+		""";
 
 	ItemStack pendrive;
 	String output = "*Empty*";
@@ -51,7 +53,8 @@ public class PythonIDE extends Screen {
 		//Saved code retrieving from NBT <================================================================================================================================================================================================================================================================================
 		NbtComponent comp2 = pendrive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root2 = comp2.copyNbt();
-		String loadedCode = root2.getString("code", "");
+		String loadedCode = root2.getString("code", presetPythonCode);
+		if (loadedCode.length() == 0){loadedCode = presetPythonCode;}
 
 
 
