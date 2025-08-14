@@ -23,6 +23,22 @@ public class PythonIDE extends Screen {
 	public PythonIDE(Text title, ItemStack pendrive) {super(title); this.pendrive = pendrive;}
 
 	String presetPythonCode = """
+		import math
+		
+		# Called once when the script starts
+		def setup():
+			# Example: initialize variables
+			global counter
+			counter = 0
+		
+		
+		# Called every game tick (pass in time in seconds or ticks)
+		def tick():
+			#Example: fly in circles
+			global counter
+			counter = counter + 1
+			time = counter / 20
+			drone.setVelocity(math.sin(time) * 0.1, 0, math.cos(time) * 0.1)
 		""";
 
 	ItemStack pendrive;
@@ -53,8 +69,8 @@ public class PythonIDE extends Screen {
 		//Saved code retrieving from NBT <================================================================================================================================================================================================================================================================================
 		NbtComponent comp2 = pendrive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root2 = comp2.copyNbt();
-		String loadedCode = root2.getString("code", presetPythonCode);
-		if (loadedCode.length() == 0){loadedCode = presetPythonCode;}
+		String loadedCode = root2.getString("code", presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote( "    "), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote("\n"), CustomRegexMarkersPython.returnMarker));
+		if (loadedCode.length() == 0){loadedCode = presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote( "    "), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote("\n"), CustomRegexMarkersPython.returnMarker);}
 
 
 
@@ -62,7 +78,7 @@ public class PythonIDE extends Screen {
 
 		//Setting up widgets <================================================================================================================================================================================================================================================================================
 		codeInput = new PythonTextFieldWidget(
-			this.textRenderer, 40, 70, 230, 200, Text.of("Python Code")
+			this.textRenderer, 40, 70, 340, 200, Text.of("Python Code")
 		);
 		codeInput.setMaxLength(Integer.MAX_VALUE);
 		codeInput.setText(loadedCode); //load code into editor
@@ -168,7 +184,7 @@ public class PythonIDE extends Screen {
 		MultilineText console = MultilineText.create(MinecraftClient.getInstance().textRenderer, Text.of(python.console()));
 
 		if (drawConsole) {
-			console.drawWithShadow(context, 280, 70, 10, Colors.ALTERNATE_WHITE);
+			console.drawWithShadow(context, 390, 70, 10, Colors.ALTERNATE_WHITE);
 		}
 	}
 

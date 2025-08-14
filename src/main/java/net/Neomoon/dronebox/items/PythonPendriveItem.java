@@ -31,7 +31,9 @@ public class PythonPendriveItem extends Item {
 	public ActionResult use(World world, PlayerEntity player, Hand hand) {
 
 		if (world.isClient) {
-			MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty(), player.getStackInHand(hand)));
+			if (player.isSneaking()) {
+				MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty(), player.getStackInHand(hand)));
+			}
 		}
 		return ActionResult.SUCCESS;
 	}
