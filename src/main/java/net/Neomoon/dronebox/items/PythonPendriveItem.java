@@ -1,11 +1,9 @@
 package net.Neomoon.dronebox.items;
 
-import com.mojang.authlib.Environment;
-import net.Neomoon.dronebox.CentralDroneInit;
+import net.Neomoon.dronebox.Drone;
 import net.Neomoon.dronebox.python.MinecraftPythonInterpreter;
 import net.Neomoon.dronebox.python.PythonIDE;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
@@ -13,8 +11,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -40,7 +36,7 @@ public class PythonPendriveItem extends Item {
 
 	@Override
 	public ActionResult useOnEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, Hand hand) {
-		if (entity instanceof CentralDroneInit.Drone drone) {
+		if (entity instanceof Drone drone) {
 			ItemStack stack2 = player.getStackInHand(hand);
 			writeCode(stack2, drone);
 			return ActionResult.SUCCESS;
@@ -48,7 +44,7 @@ public class PythonPendriveItem extends Item {
 		return ActionResult.PASS;
 	}
 
-	private void writeCode(ItemStack drive, CentralDroneInit.Drone drone){
+	private void writeCode(ItemStack drive, Drone drone){
 		//load drive code
 		NbtComponent comp2 = drive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root2 = comp2.copyNbt();

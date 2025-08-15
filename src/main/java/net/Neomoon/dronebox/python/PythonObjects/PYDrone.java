@@ -1,14 +1,13 @@
 package net.Neomoon.dronebox.python.PythonObjects;
 
-import net.Neomoon.dronebox.CentralDroneInit;
-import org.python.core.Py;
+import net.Neomoon.dronebox.Drone;
 import org.python.core.PyFloat;
 import org.python.core.PyTuple;
 
 public class PYDrone {
-	CentralDroneInit.Drone drone;
+	Drone drone;
 
-	public PYDrone(CentralDroneInit.Drone inDrone) {
+	public PYDrone(Drone inDrone) {
 		drone = inDrone;
 	}
 

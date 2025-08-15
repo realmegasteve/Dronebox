@@ -1,13 +1,13 @@
 package net.Neomoon.dronebox.items;
 
 import net.Neomoon.dronebox.CentralDroneInit;
+import net.Neomoon.dronebox.Drone;
 import net.Neomoon.dronebox.gui.DroneControlScreen;
 import net.Neomoon.dronebox.network.ToggleC2SPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -376,7 +376,7 @@ public class DroneControllerItem extends Item {
 
 	@Override
 	public net.minecraft.util.ActionResult useOnEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, net.minecraft.util.Hand hand) {
-		if (entity instanceof CentralDroneInit.Drone drone) {
+		if (entity instanceof Drone drone) {
 			ItemStack stack2 = player.getStackInHand(hand);
 			addDrone(stack2, drone, player);
 			return net.minecraft.util.ActionResult.SUCCESS;

@@ -38,7 +38,7 @@ public final class DroneNetworking {
 
 	private static void handleMovePayload(ServerPlayerEntity player, MoveC2SPayload payload) {
 		Entity e = findEntityByUUID(player, UUID.fromString(payload.droneUuid()));
-		if (e instanceof CentralDroneInit.Drone drone) {
+		if (e instanceof Drone drone) {
 			double yawRad = Math.toRadians(drone.getYaw());
 			double forward = payload.forward();
 			double strafe = payload.strafe();
@@ -55,14 +55,14 @@ public final class DroneNetworking {
 
 	private static void handleTogglePayload(ServerPlayerEntity player, ToggleC2SPayload payload) {
 		Entity e = findEntityByUUID(player, UUID.fromString(payload.droneUuid()));
-		if (e instanceof CentralDroneInit.Drone drone) {
+		if (e instanceof Drone drone) {
 			drone.setCustomName(Text.literal("Controlled by " + player.getName()));
 		}
 	}
 
 	private static void handleCameraPayload(ServerPlayerEntity player, RequestCameraPayload payload) {
 		Entity e = findEntityByUUID(player, UUID.fromString(payload.droneUuid()));
-		if (e instanceof CentralDroneInit.Drone drone) {
+		if (e instanceof Drone drone) {
 
 			byte[] imageData = drone.renderCameraToBytes();
 

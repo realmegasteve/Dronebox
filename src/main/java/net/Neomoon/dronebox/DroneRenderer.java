@@ -14,7 +14,7 @@ import org.joml.Quaterniond;
 
 @Environment(EnvType.CLIENT)
 public class DroneRenderer extends MobEntityRenderer<
-	CentralDroneInit.Drone,
+	Drone,
 	DroneRenderer.DroneRenderState,
 	PhantomEntityModel
 	> {
@@ -43,7 +43,7 @@ public class DroneRenderer extends MobEntityRenderer<
 	}
 
 	@Override
-	public void updateRenderState(CentralDroneInit.Drone drone, DroneRenderState state, float tickDelta) {
+	public void updateRenderState(Drone drone, DroneRenderState state, float tickDelta) {
 		state.yaw   = drone.getYaw();
 		state.Pitch = drone.prevPitch;
 		state.roll  = drone.getRoll();
