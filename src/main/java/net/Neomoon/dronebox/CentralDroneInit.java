@@ -4,6 +4,7 @@ import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.items.ModItems;
 import net.Neomoon.dronebox.python.CustomRegexMarkersPython;
 import net.Neomoon.dronebox.python.MinecraftPythonInterpreter;
+import net.Neomoon.dronebox.python.PythonObjects.PYDrone;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
@@ -91,7 +92,7 @@ public class CentralDroneInit implements ModInitializer {
 		public Drone(EntityType<? extends Drone> type, World world) {
 			super(type, world);
 			this.setNoGravity(true);
-			py.set(this, "drone");
+			py.set(new PYDrone(this), "drone");
 		}
 
 		public void loadPythonScript(String code){

@@ -1,55 +1,26 @@
 package net.Neomoon.dronebox.python.PythonObjects;
 
+import net.Neomoon.dronebox.CentralDroneInit;
+import org.python.core.Py;
+import org.python.core.PyFloat;
+import org.python.core.PyTuple;
+
 public class PYDrone {
-    public void setYawAcceleration(double Acceleration) {
-        System.out.println("yaw accel: " + Acceleration);
-    }
-	public void setPitchAcceleration(double Acceleration) {
-		System.out.println("pitch accel: " + Acceleration);
-	}
-	public void setRollAcceleration(double Acceleration) {
-		System.out.println("roll accel: " + Acceleration);
+	CentralDroneInit.Drone drone;
+
+	public PYDrone(CentralDroneInit.Drone inDrone) {
+		drone = inDrone;
 	}
 
-	public void setLocalXAcceleration(double Acceleration) {
-		System.out.println("x accel: " + Acceleration);
-	}
-	public void setLocalYAcceleration(double Acceleration) {
-		System.out.println("y accel: " + Acceleration);
-	}
-	public void setLocalZAcceleration(double Acceleration) { System.out.println("z accel: " + Acceleration); }
-
-    public double getX() {
-        return 42.0;
-    }
-	public double getY() {
-		return 42.0;
-	}
-	public double getZ() { return 42.0; }
-	public double getYaw() {
-		return 42.0;
-	}
-	public double getPitch() {
-		return 42.0;
-	}
-	public double getRol() {
-		return 42.0;
+	public void setVelocity(double X, double Y, double Z){
+		drone.setVelocity(X, Y, Z);
 	}
 
-	public double getXSpeed() {
-		return 42.0;
-	}
-	public double getYSpeed() {
-		return 42.0;
-	}
-	public double getZSpeed() { return 42.0; }
-	public double getYawSpeed() {
-		return 42.0;
-	}
-	public double getPitchSpeed() {
-		return 42.0;
-	}
-	public double getRolSpeed() {
-		return 42.0;
-	}
+	//Position getters
+	public double getX(){ return drone.getX(); }
+	public double getY(){ return drone.getY(); }
+	public double getZ(){ return drone.getZ(); }
+	public PyTuple getPos(){ return new PyTuple(new PyFloat(drone.getX()), new PyFloat(drone.getY()), new PyFloat(drone.getZ()));}
+
+
 }
