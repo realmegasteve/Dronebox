@@ -20,7 +20,26 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("removal")
 public class PythonIDE extends Screen {
-	public PythonIDE(Text title, ItemStack pendrive) { super(title); this.pendrive = pendrive; }
+	public PythonIDE(Text title, ItemStack pendrive) {super(title); this.pendrive = pendrive;}
+
+	String presetPythonCode = """
+		import math
+		
+		# Called once when the script starts
+		def setup():
+			# Example: initialize variables
+			global counter
+			counter = 0
+		
+		
+		# Called every game tick (pass in time in seconds or ticks)
+		def tick():
+			#Example: fly in circles
+			global counter
+			counter = counter + 1
+			time = counter / 20
+			drone.setVelocity(math.sin(time) * 0.1, 0, math.cos(time) * 0.1)
+		""";
 
 	ItemStack pendrive;
 	String output = "*Empty*";
@@ -29,7 +48,7 @@ public class PythonIDE extends Screen {
 	boolean closeFr = false;
 	boolean drawConsole = true;
 
-
+	//Widgets
 	ButtonWidget renameOkButton;
 	PythonTextFieldWidget codeInput;
 	TextFieldWidget renameBox;
@@ -45,21 +64,29 @@ public class PythonIDE extends Screen {
 		output = s;
 	}
 
-
-
-
 	@Override
 	protected void init() {
+		//Saved code retrieving from NBT <================================================================================================================================================================================================================================================================================
 		NbtComponent comp2 = pendrive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root2 = comp2.copyNbt();
-		String loadedCode = root2.getString("code", "");
+		String loadedCode = root2.getString("code", presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote( "    "), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote("\n"), CustomRegexMarkersPython.returnMarker));
+		if (loadedCode.length() == 0){loadedCode = presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote( "    "), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote("\n"), CustomRegexMarkersPython.returnMarker);}
 
+
+
+
+
+		//Setting up widgets <================================================================================================================================================================================================================================================================================
 		codeInput = new PythonTextFieldWidget(
-			this.textRenderer, 40, 70, 230, 200, Text.of("Python Code")
+			this.textRenderer, 40, 70, 340, 200, Text.of("Python Code")
 		);
 		codeInput.setMaxLength(Integer.MAX_VALUE);
-		codeInput.setText(loadedCode);
+		codeInput.setText(loadedCode); //load code into editor
 
+
+
+
+		//Rename dialog widgets <================================================================================================================================================================================================================================================================================
 		renameBox = new TextFieldWidget(this.getTextRenderer(),100, 100, 100, 20, Text.literal("name"));
 		renameBox.setVisible(false);
 		renameOkButton = ButtonWidget.builder(Text.of("Ok"), (btn) -> {
@@ -68,6 +95,11 @@ public class PythonIDE extends Screen {
 		}).dimensions(210, 100, 20, 20).build();
 		renameOkButton.visible = false;
 
+
+
+
+
+		//Action bar widgets <================================================================================================================================================================================================================================================================================
 		simulateCodeButton = ButtonWidget.builder(Text.of("Run Test"), (btn) -> {
 			try {
 				python.run(codeInput.getText().replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n"));
@@ -94,11 +126,14 @@ public class PythonIDE extends Screen {
 		}).dimensions(200, 40, 70, 20).build();
 
 
+
+		//Confirm close screen widgets <================================================================================================================================================================================================================================================================================
 		saveAndCloseButton = ButtonWidget.builder(Text.of("Save code and close"), (btn) -> {
 			saveCode(pendrive, codeInput.getText());
 			this.close();
 		}).dimensions(200, 140, 120, 20).build();
 		saveAndCloseButton.visible = false;
+
 
 		closeAndNotSaveButton = ButtonWidget.builder(Text.of("Close without saving"), (btn) -> {
 			this.close();
@@ -112,12 +147,17 @@ public class PythonIDE extends Screen {
 		cancelButton.visible = false;
 
 
+		//Code error log <================================================================================================================================================================================================================================================================================
 		codeOutputLog = new MultilineTextWidget(
 			Text.of(output),
 			this.getTextRenderer()
 		);
 
 
+
+
+
+		//Adding all widgets <================================================================================================================================================================================================================================================================================
 		this.addDrawableChild(codeInput);
 		this.addDrawableChild(simulateCodeButton);
 		this.addDrawableChild(saveCodeButton);
@@ -128,6 +168,9 @@ public class PythonIDE extends Screen {
 		this.addDrawableChild(closeAndNotSaveButton);
 		this.addDrawableChild(saveAndCloseButton);
 		this.addDrawableChild(cancelButton);
+
+
+
 	}
 
 	@Override
@@ -141,12 +184,13 @@ public class PythonIDE extends Screen {
 		MultilineText console = MultilineText.create(MinecraftClient.getInstance().textRenderer, Text.of(python.console()));
 
 		if (drawConsole) {
-			console.drawWithShadow(context, 280, 70, 10, Colors.ALTERNATE_WHITE);
+			console.drawWithShadow(context, 390, 70, 10, Colors.ALTERNATE_WHITE);
 		}
 	}
 
-	private void saveCode(ItemStack drive, String code){
 
+	private void saveCode(ItemStack drive, String code){
+		//Save code nbt shenanigans
 		NbtComponent comp = drive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
 
@@ -195,7 +239,7 @@ public class PythonIDE extends Screen {
 					}
 				});
 			}
-		}
+			}
 		openCloseDialog();
 		closeFr = true;
 	}
