@@ -1,6 +1,6 @@
 package net.Neomoon.dronebox.python.PythonObjects;
 
-public class Drone {
+public class PYDrone {
     public void setYawAcceleration(double Acceleration) {
         System.out.println("yaw accel: " + Acceleration);
     }

@@ -1,11 +1,9 @@
 package net.Neomoon.dronebox.python;
 
-import net.Neomoon.dronebox.python.PythonObjects.Drone;
+import net.Neomoon.dronebox.python.PythonObjects.PYDrone;
 import net.Neomoon.dronebox.python.PythonObjects.Logger;
 import net.minecraft.client.MinecraftClient;
 import org.python.antlr.ast.Str;
-import org.python.core.Py;
-import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
 import java.io.PrintWriter;
@@ -17,15 +15,14 @@ public class MinecraftPythonInterpreter {
 	public StringWriter outputBuffer = new StringWriter();
 
 	public MinecraftPythonInterpreter init() {
+		PYDrone drone = new PYDrone();
+		Logger logger = new Logger();
 
 		py.setOut(new PrintWriter(outputBuffer));
 
+		py.set("drone", drone);
+		py.set("console", logger);
 		py.set("MinecraftClient", MinecraftClient.getInstance());
-		return this;
-	}
-
-	public MinecraftPythonInterpreter set(Object o, String name) {
-		py.set(name, o);
 		return this;
 	}
 
@@ -36,33 +33,6 @@ public class MinecraftPythonInterpreter {
 		py.setOut(new PrintWriter(outputBuffer));
 
 		Future<?> f = exec.submit(() -> py.exec(code));
-		try {
-			f.get(3, TimeUnit.SECONDS);
-		} catch (TimeoutException e) {
-			f.cancel(true);
-			py.close();
-		} catch (InterruptedException | ExecutionException e) {
-			throw e;
-		}
-	}
-
-	public void runSetup() throws ExecutionException, InterruptedException {
-		PyObject func = py.getLocals().__getitem__(Py.newString("setup"));
-		Future<?> f = exec.submit(() -> func.__call__());
-
-		try {
-			f.get(3, TimeUnit.SECONDS);
-		} catch (TimeoutException e) {
-			f.cancel(true);
-			py.close();
-		} catch (InterruptedException | ExecutionException e) {
-			throw e;
-		}
-	}
-
-	public void runTick() throws ExecutionException, InterruptedException {
-		PyObject func = py.getLocals().__getitem__(Py.newString("tick"));
-		Future<?> f = exec.submit(() -> func.__call__());
 		try {
 			f.get(3, TimeUnit.SECONDS);
 		} catch (TimeoutException e) {

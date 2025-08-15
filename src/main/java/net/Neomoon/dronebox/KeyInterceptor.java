@@ -2,17 +2,13 @@ package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.network.MoveC2SPayload;
-import net.Neomoon.dronebox.python.PythonIDE;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
-import java.nio.charset.MalformedInputException;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,7 +35,7 @@ public class KeyInterceptor {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null) return;
 			var held = client.player.getMainHandStack();
-			if (!(held.getItem() instanceof DroneControllerItem)) return;
+			if (!(held.getItem() instanceof net.Neomoon.dronebox.items.DroneControllerItem)) return;
 
 			float forward = 0f;
 			float strafe = 0f;
@@ -58,9 +54,16 @@ public class KeyInterceptor {
 
 			if (forward != 0 || strafe != 0 || jump || sneak || yawDelta != 0) {
 				List<String> droneUUIDs = DroneControllerItem.getLinkedDroneUUIDs(held);
-				System.out.println(droneUUIDs);
 				for (String uuidStr : droneUUIDs) {
-					UUID uuid = UUID.fromString(uuidStr);
+
+					if (!DroneControllerItem.isDroneControlEnabled(held, uuidStr)) continue;
+
+					UUID uuid;
+					try {
+						uuid = UUID.fromString(uuidStr);
+					} catch (IllegalArgumentException e) {
+						continue;
+					}
 
 					MoveC2SPayload p = new MoveC2SPayload(uuid.toString(), forward, strafe, jump, sneak, yawDelta);
 					ClientPlayNetworking.send(p);
