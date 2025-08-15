@@ -483,6 +483,7 @@ public class PythonTextFieldWidget extends ClickableWidget {
 
 		int y = lineY - MathHelper.floor(offsetPixels);
 		for (int idx = startIdx; idx < endIdx; idx++) {
+			//Draw selection
 			VisualSegment seg = this.allSegmentsCache.get(idx);
 			int segStart = seg.logicalStart;
 			int segEnd = seg.logicalStart + seg.content.length();
@@ -497,13 +498,17 @@ public class PythonTextFieldWidget extends ClickableWidget {
 				context.fill(xStart, y - 1, xEnd, y + this.lineHeight - 1, SELECTION_COLOR);
 			}
 
-
-			boolean showCursor = this.isFocused() && ((Util.getMeasuringTimeMs() - this.lastSwitchFocusTime) % 1000L < 500L);
-			if (showCursor && logicalCursor >= segStart && logicalCursor <= segEnd) {
+			//Draw cursor
+			boolean showCursor = this.isFocused() && ((Util.getMeasuringTimeMs() - this.lastSwitchFocusTime) % 1000L < 700);
+			if (logicalCursor >= segStart && logicalCursor <= segEnd) {
 				int cursorOffset = logicalCursor - segStart;
 				int safeOffset = Math.max(0, Math.min(cursorOffset, seg.content.length()));
 				int cursorX = this.textX + getTextWidth(seg.content.substring(0, safeOffset));
-				context.fill(cursorX - 1, y - 1, cursorX + 1, y + this.lineHeight - 1, Colors.WHITE);
+				if(showCursor) {
+					context.fill(cursorX - 1, y - 1, cursorX + 1, y + this.lineHeight - 1, Colors.WHITE);
+				} else {
+					context.fill(cursorX - 1, y - 1, cursorX + 1, y + this.lineHeight - 1, Colors.GRAY);
+				}
 			}
 
 			y += this.lineSpacing;
@@ -562,7 +567,6 @@ public class PythonTextFieldWidget extends ClickableWidget {
 
 		int maxWidth = getInnerWidth();
 		String visibleLogical = this.logicalText;
-		if (visibleLogical == null) visibleLogical = "";
 
 		int pos = 0;
 		int logicalPos = 0;
@@ -619,6 +623,9 @@ public class PythonTextFieldWidget extends ClickableWidget {
 		lineEndIdx = Math.max(0, Math.min(lineEndIdx, this.logicalText.length()));
 
 		String fullLine = (lineStartIdx < lineEndIdx) ? this.logicalText.substring(lineStartIdx, lineEndIdx) : "";
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		fullLine = fullLine.replaceAll(Pattern.quote("\t"), "⟹");
+		System.out.println(fullLine);
 
 		int segLocalStart = seg.logicalStart - lineStartIdx;
 		int segLocalEnd = segLocalStart + seg.content.length();
@@ -666,7 +673,7 @@ public class PythonTextFieldWidget extends ClickableWidget {
 				int from = overlapStart - last;
 				int xOffset = drawX + getTextWidth(trailing.substring(0, from));
 				String slice = trailing.substring(from, overlapEnd - last);
-				context.drawTextWithShadow(this.textRenderer, OrderedText.styledForwardsVisitedString(slice, Style.EMPTY), xOffset, baseY, COLOR_DEFAULT);
+				context.drawTextWithShadow(this.textRenderer, OrderedText.styledForwardsVisitedString(slice , Style.EMPTY), xOffset, baseY, COLOR_DEFAULT);
 			}
 		}
 	}

@@ -4,6 +4,8 @@ import net.Neomoon.dronebox.python.PythonObjects.PYDrone;
 import net.Neomoon.dronebox.python.PythonObjects.Logger;
 import net.minecraft.client.MinecraftClient;
 import org.python.antlr.ast.Str;
+import org.python.core.Py;
+import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
 import java.io.PrintWriter;
