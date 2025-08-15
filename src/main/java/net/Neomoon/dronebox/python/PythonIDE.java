@@ -16,6 +16,7 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("removal")
@@ -47,6 +48,7 @@ public class PythonIDE extends Screen {
 	MultilineTextWidget codeOutputLog;
 	boolean closeFr = false;
 	boolean drawConsole = true;
+	boolean saved = true;
 
 	//Widgets
 	ButtonWidget renameOkButton;
@@ -169,14 +171,19 @@ public class PythonIDE extends Screen {
 		this.addDrawableChild(saveAndCloseButton);
 		this.addDrawableChild(cancelButton);
 
-
-
+		lastText = codeInput.getText();
 	}
+
+	String lastText;
 
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
 
+		if (!Objects.equals(lastText, codeInput.getText())) {
+			lastText = codeInput.getText();
+			saved = false;
+		}
 		context.drawText(this.textRenderer, "Python IDE", 40, 10 - this.textRenderer.fontHeight - 10, 0xFFFFFFFF, true);
 
 		codeOutputLog.setMessage(Text.of(output));
@@ -198,6 +205,7 @@ public class PythonIDE extends Screen {
 		root.put("code", code2);
 
 		drive.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+		saved = true;
 	}
 
 	private void openCloseDialog(){
@@ -228,7 +236,7 @@ public class PythonIDE extends Screen {
 
 	@Override
 	public void close() {
-		if (closeFr) {
+		if (closeFr || saved) {
 			MinecraftClient mc = MinecraftClient.getInstance();
 			if (mc != null) {
 				mc.execute(() -> {
