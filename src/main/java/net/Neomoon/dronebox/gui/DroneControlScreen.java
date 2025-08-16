@@ -1,6 +1,8 @@
 package net.Neomoon.dronebox.gui;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
+import net.Neomoon.dronebox.network.ViewTogglePayload;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -19,14 +21,6 @@ public class DroneControlScreen extends Screen {
 	private final List<PanelRect> panels = new ArrayList<>();
 	private final Map<ButtonWidget, Text> buttonTooltips = new HashMap<>();
 
-	private static final int ENTRY_HEIGHT = 30;
-	private static final int ENTRY_SPACING = 8;
-	private static final int BUTTON_WIDTH = 75;
-	private static final int BUTTON_HEIGHT = 20;
-	private static final int PANEL_PADDING = 6;
-	private static final int NAME_FIELD_WIDTH = 140;
-	private static final int MAX_COLUMNS = 2;
-
 	public DroneControlScreen(ItemStack controller) {
 		super(Text.literal("Drone Control"));
 		this.controllerStack = controller;
@@ -35,90 +29,104 @@ public class DroneControlScreen extends Screen {
 	@Override
 	protected void init() {
 		super.init();
-		droneEntries.clear();
+		this.clearChildren();
 		panels.clear();
+		droneEntries.clear();
 		buttonTooltips.clear();
 
-		int centerX = this.width / 2;
-		int startY = 40;
+		int panelWidth = 240;
+		int panelHeight = 50;
+		int panelSpacingX = 15;
+		int panelSpacingY = 10;
+		int buttonWidth = 50;
+		int buttonHeight = 20;
 
-		List<String> linked = DroneControllerItem.getLinkedDroneUUIDs(controllerStack);
+		List<String> droneUUIDs = DroneControllerItem.getLinkedDroneUUIDs(controllerStack);
+		int columns = 2;
+		int totalPanelsWidth = columns * panelWidth + (columns - 1) * panelSpacingX;
+		int startX = (this.width - totalPanelsWidth) / 2;
+		int startY = 20;
 
-		if (linked.isEmpty()) {
-			addDrawableChild(ButtonWidget.builder(
-				Text.literal("No linked drones").formatted(Formatting.GRAY),
-				b -> close()
-			).position(centerX - 100, startY).size(200, BUTTON_HEIGHT).build());
-		} else {
-			int displayed = 0;
-			int row = 0;
+		for (int i = 0; i < droneUUIDs.size(); i++) {
+			UUID droneUuid = UUID.fromString(droneUUIDs.get(i));
 
-			for (String uuidStr : linked) {
-				if (displayed >= linked.size()) break;
+			int col = i % columns;
+			int row = i / columns;
+			int panelX = startX + col * (panelWidth + panelSpacingX);
+			int panelY = startY + row * (panelHeight + panelSpacingY);
 
-				final String droneUuid = uuidStr;
-				boolean isEnabled = DroneControllerItem.isDroneEnabled(controllerStack, droneUuid);
+			panels.add(new PanelRect(panelX, panelY, panelWidth, panelHeight, true));
 
-				int col = displayed % MAX_COLUMNS;
-				if (col == 0 && displayed > 0) row++;
+			int textFieldWidth = panelWidth - 32;
+			TextFieldWidget nameField = new TextFieldWidget(
+				this.textRenderer,
+				panelX + 4,
+				panelY + 4,
+				textFieldWidth,
+				20,
+				Text.literal("Drone Name")
+			);
+			String currentName = String.valueOf(DroneControllerItem.getDroneDisplayName(controllerStack, droneUuid.toString()));
+			nameField.setText(currentName != null ? currentName : "");
+			this.addDrawableChild(nameField);
+			droneEntries.add(new DroneEntry(droneUuid.toString(), nameField));
 
-				int xOffset = centerX - 160 + col * 180;
-				int yOffset = startY + row * (ENTRY_HEIGHT + ENTRY_SPACING);
-
-				panels.add(new PanelRect(
-					xOffset - PANEL_PADDING / 2,
-					yOffset - PANEL_PADDING / 2,
-					170,
-					ENTRY_HEIGHT + PANEL_PADDING,
-					isEnabled
-				));
-
-				TextFieldWidget nameField = new TextFieldWidget(
-					this.textRenderer,
-					xOffset,
-					yOffset,
-					NAME_FIELD_WIDTH,
-					BUTTON_HEIGHT,
-					Text.literal("Drone Name")
-				);
-				nameField.setText(DroneControllerItem.getDroneDisplayName(controllerStack, droneUuid).getString());
-				nameField.setEditable(isEnabled);
-				addSelectableChild(nameField);
-
-				droneEntries.add(new DroneEntry(droneUuid, nameField));
-
-				ButtonWidget controlBtn = ButtonWidget.builder(
-					Text.literal("Control: " + (DroneControllerItem.isDroneControlEnabled(controllerStack, droneUuid) ? "ON" : "OFF")),
+			ButtonWidget checkmarkBtn = ButtonWidget.builder(
+					Text.literal("✔"),
 					btn -> {
-						boolean newState = !DroneControllerItem.isDroneControlEnabled(controllerStack, droneUuid);
-						DroneControllerItem.setDroneControlEnabled(controllerStack, droneUuid, newState);
-						btn.setMessage(Text.literal("Control: " + (newState ? "ON" : "OFF")));
+						String name = nameField.getText();
+						DroneControllerItem.setDroneName(controllerStack, droneUuid.toString(), name, MinecraftClient.getInstance().world);
 					}
-				).position(xOffset - (BUTTON_WIDTH + 4), yOffset + BUTTON_HEIGHT + 2).size(BUTTON_WIDTH, BUTTON_HEIGHT).build();
+				).position(panelX + panelWidth - buttonWidth - 4, panelY + 4)
+				.size(buttonWidth, buttonHeight)
+				.build();
+			addDrawableChild(checkmarkBtn);
 
-				buttonTooltips.put(controlBtn, Text.literal("Toggle control state"));
-				addDrawableChild(controlBtn);
+			int btnY = panelY + panelHeight - buttonHeight - 4;
+			int totalBtnWidth = (buttonWidth * 4) + (4 * 3);
+			int btnStartX = panelX + (panelWidth - totalBtnWidth) / 2;
 
-				ButtonWidget cameraBtn = ButtonWidget.builder(
-					Text.literal("Camera: " + (DroneControllerItem.isDroneCameraEnabled(controllerStack, droneUuid) ? "ON" : "OFF")),
-					btn -> {
-						boolean newState = !DroneControllerItem.isDroneCameraEnabled(controllerStack, droneUuid);
-						DroneControllerItem.setDroneCameraEnabled(controllerStack, droneUuid, newState);
-						btn.setMessage(Text.literal("Camera: " + (newState ? "ON" : "OFF")));
-					}
-				).position(xOffset + BUTTON_WIDTH + 4, yOffset + BUTTON_HEIGHT + 2).size(BUTTON_WIDTH, BUTTON_HEIGHT).build();
+			ButtonWidget controlBtn = ButtonWidget.builder(
+				Text.literal("Control: " + (DroneControllerItem.isDroneControlEnabled(controllerStack, String.valueOf(droneUuid)) ? "ON" : "OFF")),
+				btn -> {
+					boolean newState = !DroneControllerItem.isDroneControlEnabled(controllerStack, String.valueOf(droneUuid));
+					DroneControllerItem.setDroneControlEnabled(controllerStack, String.valueOf(droneUuid), newState);
+					btn.setMessage(Text.literal("Control: " + (newState ? "ON" : "OFF")));
+				}
+			).position(btnStartX, btnY).size(buttonWidth, buttonHeight).build();
+			buttonTooltips.put(controlBtn, Text.literal("Toggle control state"));
+			addDrawableChild(controlBtn);
 
-				buttonTooltips.put(cameraBtn, Text.literal("Toggle camera feed"));
-				addDrawableChild(cameraBtn);
+			ButtonWidget cameraBtn = ButtonWidget.builder(
+				Text.literal("Camera: " + (DroneControllerItem.isDroneCameraEnabled(controllerStack, String.valueOf(droneUuid)) ? "ON" : "OFF")),
+				btn -> {
+					boolean newState = !DroneControllerItem.isDroneCameraEnabled(controllerStack, String.valueOf(droneUuid));
+					DroneControllerItem.setDroneCameraEnabled(controllerStack, String.valueOf(droneUuid), newState);
+					btn.setMessage(Text.literal("Camera: " + (newState ? "ON" : "OFF")));
+				}
+			).position(btnStartX + buttonWidth + 4, btnY).size(buttonWidth, buttonHeight).build();
+			buttonTooltips.put(cameraBtn, Text.literal("Toggle camera feed"));
+			addDrawableChild(cameraBtn);
 
-				displayed++;
-			}
+			ButtonWidget removeBtn = ButtonWidget.builder(
+				Text.literal("Remove").formatted(Formatting.RED),
+				btn -> {
+					DroneControllerItem.removeDroneByUUID(controllerStack, String.valueOf(droneUuid));
+					init();
+				}
+			).position(btnStartX + (buttonWidth + 4) * 2, btnY).size(buttonWidth, buttonHeight).build();
+			buttonTooltips.put(removeBtn, Text.literal("Remove this drone"));
+			addDrawableChild(removeBtn);
+
+			ButtonWidget extraBtn = ButtonWidget.builder(
+				Text.literal("View"),
+				btn -> {
+					ClientPlayNetworking.send(new ViewTogglePayload(droneUuid.toString()));
+				}
+			).position(btnStartX + (buttonWidth + 4) * 3, btnY).size(buttonWidth, buttonHeight).build();
+			buttonTooltips.put(extraBtn, Text.literal("Take the Drone's Vision"));
+			addDrawableChild(extraBtn);
 		}
-
-		addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> {
-			saveNames();
-			close();
-		}).position(this.width / 2 - 100, this.height - 35).size(200, 25).build());
 	}
 
 	@Override
@@ -127,9 +135,6 @@ public class DroneControlScreen extends Screen {
 		for (PanelRect p : panels) {
 			ctx.fill(p.x, p.y, p.x + p.w, p.y + p.h, 0xFF222233);
 			ctx.fill(p.x + 1, p.y + 1, p.x + p.w - 1, p.y + p.h - 1, 0xFF444466);
-			if (!p.enabled) {
-				ctx.fill(p.x + 2, p.y + 2, p.x + p.w - 2, p.y + p.h - 2, 0x88000000);
-			}
 		}
 	}
 

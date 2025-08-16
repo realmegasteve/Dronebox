@@ -6,6 +6,9 @@
 	"mixins": [
 	],
 	"client": [
+		"EntityRenderDispatcherMixin",
+		"HeldItemRendererMixin",
+		"MinecraftClientMixin"
 	],
 	"server": [
 	],

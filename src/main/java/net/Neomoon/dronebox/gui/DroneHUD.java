@@ -1,14 +1,15 @@
 package net.Neomoon.dronebox.gui;
 
+import net.Neomoon.dronebox.CameraManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.texture.TextureManager;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.resource.Resource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.joml.Matrix3x2fStack;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,13 +28,23 @@ public class DroneHUD {
 		return Identifier.of("dronebox", "drone_cam_" + slot);
 	}
 
-	public static void renderHUD(MatrixStack matrices, DrawContext ctx) {
+	public static void renderHUD(Matrix3x2fStack matrices, DrawContext ctx) {
+		if (CameraManager.DroneCamera) {
+			return;
+		}
+		int SCREEN_WIDTH = 70;
+		int SCREEN_HEIGHT = 70;
+
+		int GAP_X = 50;
+		int GAP_Y = 20;
+
+		int ROW_SPACING = SCREEN_HEIGHT + 20;
+
 		int[][] SCREEN_POSITIONS = {
-			{10, 10}, {148, 10}, {286, 10},
-			{10, 148}, {148, 148}, {286, 148}
+			{10, 10}, {400, 10},
+			{10, 10 + ROW_SPACING}, {400, 10 + ROW_SPACING},
+			{10, 10 + ROW_SPACING * 2}, {400, 10 + ROW_SPACING * 2}
 		};
-		int SCREEN_WIDTH = 128;
-		int SCREEN_HEIGHT = 128;
 
 		for (int i = 0; i < 6; i++) {
 			int x = SCREEN_POSITIONS[i][0];
