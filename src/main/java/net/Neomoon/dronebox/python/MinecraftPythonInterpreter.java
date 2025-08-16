@@ -3,6 +3,7 @@ package net.Neomoon.dronebox.python;
 import net.Neomoon.dronebox.python.PythonObjects.PYDrone;
 import net.Neomoon.dronebox.python.PythonObjects.Logger;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
 import org.python.antlr.ast.Str;
 import org.python.core.Py;
 import org.python.core.PyObject;
@@ -47,29 +48,38 @@ public class MinecraftPythonInterpreter {
 	}
 
 	public void runSetup() throws ExecutionException, InterruptedException {
-		PyObject func = py.getLocals().__getitem__(Py.newString("setup"));
-		Future<?> f = exec.submit(() -> func.__call__());
-
 		try {
-			f.get(3, TimeUnit.SECONDS);
-		} catch (TimeoutException e) {
-			f.cancel(true);
-			py.close();
-		} catch (InterruptedException | ExecutionException e) {
-			throw e;
+			PyObject func = py.getLocals().__getitem__(Py.newString("setup"));
+			Future<?> f = exec.submit(() -> func.__call__());
+			try {
+				f.get(3, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				f.cancel(true);
+				py.close();
+			} catch (InterruptedException | ExecutionException e) {
+				MinecraftClient.getInstance().player.sendMessage(Text.of(e.getMessage()), true);
+				throw e;
+			}
+		} catch (Exception e) {
+			MinecraftClient.getInstance().player.sendMessage(Text.of("Setup function not found"), true);
 		}
 	}
 
 	public void runTick() throws ExecutionException, InterruptedException {
-		PyObject func = py.getLocals().__getitem__(Py.newString("tick"));
-		Future<?> f = exec.submit(() -> func.__call__());
 		try {
-			f.get(3, TimeUnit.SECONDS);
-		} catch (TimeoutException e) {
-			f.cancel(true);
-			py.close();
-		} catch (InterruptedException | ExecutionException e) {
-			throw e;
+			PyObject func = py.getLocals().__getitem__(Py.newString("tick"));
+			Future<?> f = exec.submit(() -> func.__call__());
+			try {
+				f.get(3, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				f.cancel(true);
+				py.close();
+			} catch (InterruptedException | ExecutionException e) {
+				MinecraftClient.getInstance().player.sendMessage(Text.of(e.getMessage()), true);
+				throw e;
+			}
+		} catch (Exception e) {
+			MinecraftClient.getInstance().player.sendMessage(Text.of("Tick function not found"), true);
 		}
 	}
 
