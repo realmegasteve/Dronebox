@@ -33,6 +33,7 @@ public class Drone extends MobEntity {
 	private double roll;
 	private double yaw;
 	private double pitch;
+	private boolean pythonLoaded = false;
 
 	public double prevRoll;
 	public double prevYaw;
@@ -65,11 +66,13 @@ public class Drone extends MobEntity {
 		try {
 			py.run(code.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n"));
 			py.runSetup();
+			pythonLoaded = true;
 		} catch (ExecutionException | InterruptedException e) {
 			//clear code when crashing
 			root.put("code", NbtString.of(""));
 			this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
 			e.printStackTrace();
+			pythonLoaded = false;
 		}
 	}
 
@@ -83,71 +86,54 @@ public class Drone extends MobEntity {
 
 	@Override
 	public void tick() {
-		super.tick();
-
-		this.prevYaw = this.yaw;
-		this.prevPitch = this.pitch;
-		this.prevRoll = this.roll;
-
-
-		this.yaw += (float) this.yawRate;
-		//Python test
-		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n");
-		if (loadedCode != ""){
-			try {
-				py.run(loadedCode);
-				py.runTick();
-			} catch (ExecutionException | InterruptedException e) {
-				//clear code when crashing
-				root.put("code", NbtString.of(""));
-				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
-				e.printStackTrace();
-			}
-		}
-
-
-		this.yaw += (float) this.yawRate;
-		this.move(MovementType.SELF, this.getVelocity());
-
-
-		Vec3d velocity = this.getVelocity();
-		super.tick();
-		this.setVelocity(velocity);
-
-		physics();
-
-		runPython();
-
-		double vx = velocity.x;
-		double vz = velocity.z;
-		double horizontalSpeed = Math.sqrt(vx * vx + vz * vz);
-
-		double targetPitch = 0.0;
-		double targetRoll = 0.0;
-
-		if (horizontalSpeed > 1e-4) {
-			double nx = vx / horizontalSpeed;
-			double nz = vz / horizontalSpeed;
-
-			double dirSmooth = 0.3;
-			smoothedNx += (nx - smoothedNx) * dirSmooth;
-			smoothedNz += (nz - smoothedNz) * dirSmooth;
-
-			targetPitch = -smoothedNz * 15.0;
-			targetRoll  =  smoothedNx * 15.0;
+		if (pythonLoaded) {
+			Vec3d velocity = this.getVelocity();
+			super.tick();
+			this.setVelocity(velocity);
+			runPython();
+			physics();
 		} else {
-			double uprightSmooth = 0.1;
-			smoothedNx += (0 - smoothedNx) * uprightSmooth;
-			smoothedNz += (0 - smoothedNz) * uprightSmooth;
-			targetPitch = 0;
-			targetRoll = 0;
-		}
+			super.tick();
 
-		float tiltSmooth = 0.2f;
-		this.pitch += (targetPitch - this.pitch) * tiltSmooth;
-		this.roll  += (targetRoll - this.roll) * tiltSmooth;
+			this.prevYaw = this.yaw;
+			this.prevPitch = this.pitch;
+			this.prevRoll = this.roll;
+
+
+			this.yaw += (float) this.yawRate;
+
+			this.yaw += (float) this.yawRate;
+			this.move(MovementType.SELF, this.getVelocity());
+
+			double vx = velocity.x;
+			double vz = velocity.z;
+			double horizontalSpeed = Math.sqrt(vx * vx + vz * vz);
+
+			double targetPitch = 0.0;
+			double targetRoll = 0.0;
+
+			if (horizontalSpeed > 1e-4) {
+				double nx = vx / horizontalSpeed;
+				double nz = vz / horizontalSpeed;
+
+				double dirSmooth = 0.3;
+				smoothedNx += (nx - smoothedNx) * dirSmooth;
+				smoothedNz += (nz - smoothedNz) * dirSmooth;
+
+				targetPitch = -smoothedNz * 15.0;
+				targetRoll = smoothedNx * 15.0;
+			} else {
+				double uprightSmooth = 0.1;
+				smoothedNx += (0 - smoothedNx) * uprightSmooth;
+				smoothedNz += (0 - smoothedNz) * uprightSmooth;
+				targetPitch = 0;
+				targetRoll = 0;
+			}
+
+			float tiltSmooth = 0.2f;
+			this.pitch += (targetPitch - this.pitch) * tiltSmooth;
+			this.roll += (targetRoll - this.roll) * tiltSmooth;
+		}
 	}
 
 	public byte[] renderCameraToBytes() {
