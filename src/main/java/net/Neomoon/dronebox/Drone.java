@@ -95,6 +95,8 @@ public class Drone extends MobEntity {
 		} else {
 			super.tick();
 
+			Vec3d velocity = this.getVelocity();
+
 			this.prevYaw = this.yaw;
 			this.prevPitch = this.pitch;
 			this.prevRoll = this.roll;
