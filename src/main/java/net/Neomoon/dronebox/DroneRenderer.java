@@ -62,7 +62,8 @@ public class DroneRenderer extends MobEntityRenderer<
 
 		Quaterniond quatD = new Quaterniond()
 			.rotateX(Math.toRadians(state.Pitch))
-			.rotateZ(Math.toRadians(state.roll));
+			.rotateZ(Math.toRadians(state.roll))
+			.rotateY(Math.toRadians(state.yaw));
 
 		matrices.multiply(new Quaternionf(quatD));
 	}

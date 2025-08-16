@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 public class Drone extends MobEntity {
-	private double yawRate, pitchRate, rollRate;
+	public double yawRate, pitchRate, rollRate;
 	private double roll;
 	private double yaw;
 	private double pitch;
@@ -35,6 +35,7 @@ public class Drone extends MobEntity {
 	public double prevRoll;
 	public double prevYaw;
 	public double prevPitch;
+	private double dragCoefficient = 0.02;
 
 	MinecraftPythonInterpreter py = new MinecraftPythonInterpreter();
 
@@ -80,69 +81,14 @@ public class Drone extends MobEntity {
 
 	@Override
 	public void tick() {
-		super.tick();
-
-		this.prevYaw = this.yaw;
-		this.prevPitch = this.pitch;
-		this.prevRoll = this.roll;
-
-
-		this.yaw += (float) this.yawRate;
-		//Python test
-		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n");
-		if (loadedCode != ""){
-			try {
-				py.run(loadedCode);
-				py.runTick();
-			} catch (ExecutionException | InterruptedException e) {
-				//clear code when crashing
-				root.put("code", NbtString.of(""));
-				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
-				e.printStackTrace();
-			}
-		}
-
-
-		this.yaw += (float) this.yawRate;
-		this.move(MovementType.SELF, this.getVelocity());
-
-
+		//Overwriting default vanilla velocity
 		Vec3d velocity = this.getVelocity();
-		double vx = velocity.x;
-		double vz = velocity.z;
-		double horizontalSpeed = Math.sqrt(vx * vx + vz * vz);
+		super.tick();
+		this.setVelocity(velocity);
 
-		double targetPitch = 0.0;
-		double targetRoll = 0.0;
+		physics();
 
-		if (horizontalSpeed > 1e-4) {
-			double nx = vx / horizontalSpeed;
-			double nz = vz / horizontalSpeed;
-
-			double dirSmooth = 0.3;
-			smoothedNx += (nx - smoothedNx) * dirSmooth;
-			smoothedNz += (nz - smoothedNz) * dirSmooth;
-
-			targetPitch = -smoothedNz * 15.0;
-			targetRoll  =  smoothedNx * 15.0;
-		} else {
-
-			double uprightSmooth = 0.1;
-			smoothedNx += (0 - smoothedNx) * uprightSmooth;
-			smoothedNz += (0 - smoothedNz) * uprightSmooth;
-			targetPitch = 0;
-			targetRoll = 0;
-		}
-
-
-		float tiltSmooth = 0.2f;
-		this.pitch += (targetPitch - this.pitch) * tiltSmooth;
-		this.roll  += (targetRoll - this.roll) * tiltSmooth;
-
-
-
+		runPython();
 
 	}
 
@@ -194,7 +140,68 @@ public class Drone extends MobEntity {
 		this.rollRate = rollRate;
 	}
 
+	private void runPython(){
+		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+		NbtCompound root = comp.copyNbt();
+		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n");
+
+		if (loadedCode != ""){
+			try {
+				py.run(loadedCode);
+				py.runTick();
+			} catch (ExecutionException | InterruptedException e) {
+				//clear code when crashing
+				root.put("code", NbtString.of(""));
+				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void physics(){
+		//======================[apply drag and gravity]======================
+
+		//Drag
+		Vec3d velocity = this.getVelocity();
+		double speed = velocity.length();
+
+		double dragMagnitude = dragCoefficient * speed * speed;
+
+		Vec3d dragForce = velocity.normalize().multiply(-dragMagnitude);
+
+		velocity = velocity.add(dragForce.multiply(0.002));
+
+
+
+		//Gravity
+		velocity.add(new Vec3d(0, -0.02, 0));
+
+
+
+		this.setVelocity(velocity);
+
+		//======================[Applying and closing]======================
+		//Apply rotation
+		this.prevYaw = this.yaw;
+		this.prevPitch = this.pitch;
+		this.prevRoll = this.roll;
+
+		this.yaw += this.yawRate;
+		this.pitch += this.pitchRate;
+		this.roll  += this.rollRate;
+
+		System.out.println(yaw + "/" + pitch + "/" + roll);
+
+		//Apply movement
+		this.move(MovementType.SELF, this.getVelocity());
+	}
+
 	public double getRoll() {
 		return roll;
+	}
+
+	@Override
+	public float getYaw() {
+		return (float) yaw;
 	}
 }
