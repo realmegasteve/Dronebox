@@ -16,11 +16,11 @@ import org.joml.Quaterniond;
 public class DroneRenderer extends MobEntityRenderer<
 	Drone,
 	DroneRenderer.DroneRenderState,
-	PhantomEntityModel
+	DroneEntityModel
 	> {
 
 	private static final Identifier TEXTURE =
-		Identifier.of("minecraft", "textures/entity/phantom.png");
+		Identifier.of("dronebox", "textures/entity/drone/drone");
 
 	public static class DroneRenderState extends PhantomEntityRenderState {
 		public double roll;
@@ -29,7 +29,7 @@ public class DroneRenderer extends MobEntityRenderer<
 	}
 
 	public DroneRenderer(EntityRendererFactory.Context context) {
-		super(context, new PhantomEntityModel(context.getPart(EntityModelLayers.PHANTOM)), 0.75F);
+		super(context, new DroneEntityModel(context.getPart(EntityModelLayers.PHANTOM)), 0.75F);
 	}
 
 	@Override
