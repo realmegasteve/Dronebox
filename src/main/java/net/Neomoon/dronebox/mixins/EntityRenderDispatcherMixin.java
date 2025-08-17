@@ -15,6 +15,8 @@ public abstract class EntityRenderDispatcherMixin {
 	private void alwaysRenderPlayer(Entity entity, double x, double y, double z, float yaw, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
 		MinecraftClient client = MinecraftClient.getInstance();
 		if (entity == client.player && client.getCameraEntity() != client.player) {
+			//the point of this is that the player stays visible when the drone camera is beeing used
+			//this is not functional, i asked gpt if there is a way to do this it said mixining into the EntityRenderDispatcher would work but it seems ive been lied to T-T
 			entity.setInvisible(false);
 		}
 	}

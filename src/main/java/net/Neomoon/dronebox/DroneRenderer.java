@@ -5,8 +5,6 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
-import net.minecraft.client.render.entity.model.PhantomEntityModel;
-import net.minecraft.client.render.entity.state.PhantomEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import org.joml.Quaternionf;
@@ -25,8 +23,12 @@ public class DroneRenderer extends MobEntityRenderer<
 	public static class DroneRenderState extends DroneEntityRenderState {
 		public Drone entity;
 
+		public double prevRoll;
+		public double prevPitch;
+		public double prevYaw;
+
 		public double roll;
-		public double Pitch;
+		public double pitch;
 		public double yaw;
 	}
 
@@ -54,9 +56,14 @@ public class DroneRenderer extends MobEntityRenderer<
 	public void updateRenderState(Drone drone, DroneRenderState state, float tickDelta) {
 		state.entity = drone;
 
-		state.yaw   = drone.getYaw();
-		state.Pitch = drone.prevPitch;
-		state.roll  = drone.getRoll();
+		state.prevYaw = drone.prevYaw;
+		state.yaw     = drone.getYaw();
+
+		state.prevPitch = drone.prevPitch;
+		state.pitch     = drone.getPitch();
+
+		state.prevRoll = drone.prevRoll;
+		state.roll     = drone.getRoll();
 	}
 
 	private double lerpAngle(float delta, double start, double end) {
@@ -68,12 +75,15 @@ public class DroneRenderer extends MobEntityRenderer<
 
 	@Override
 	protected void setupTransforms(DroneRenderState state, MatrixStack matrices, float yaw, float tickDelta) {
-		super.setupTransforms(state, matrices, (float) state.yaw, tickDelta);
+		double interpYaw   = lerpAngle(tickDelta, state.prevYaw, state.yaw);
+		double interpPitch = lerpAngle(tickDelta, state.prevPitch, state.pitch);
+		double interpRoll  = lerpAngle(tickDelta, state.prevRoll, state.roll);
+
+		super.setupTransforms(state, matrices, (float) interpYaw, tickDelta);
 
 		Quaterniond quatD = new Quaterniond()
-			.rotateX(Math.toRadians(state.Pitch))
-			.rotateZ(Math.toRadians(state.roll))
-			.rotateY(Math.toRadians(state.yaw));
+			.rotateX(Math.toRadians(interpPitch))
+			.rotateZ(Math.toRadians(interpRoll));
 
 		matrices.multiply(new Quaternionf(quatD));
 	}

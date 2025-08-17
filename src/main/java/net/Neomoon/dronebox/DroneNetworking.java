@@ -79,7 +79,9 @@ public final class DroneNetworking {
 
 	}
 	private static void handleViewupdatePayload(ClientPlayerEntity player, ViewUpdatePayload payload) {
-		
+
+		CameraManager.update(UUID.fromString(payload.target()), !CameraManager.DroneCamera);
+
 	}
 
 	private static void handleCameraPayload(ServerPlayerEntity player, RequestCameraPayload payload) {

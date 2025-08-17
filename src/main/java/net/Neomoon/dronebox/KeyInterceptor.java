@@ -45,12 +45,12 @@ public class KeyInterceptor {
 
 			if (keyForward.isPressed()) forward += 1f;
 			if (keyBack.isPressed()) forward -= 1f;
-			if (keyLeft.isPressed()) strafe -= 1f;
-			if (keyRight.isPressed()) strafe += 1f;
+			if (keyLeft.isPressed()) strafe += 1f;
+			if (keyRight.isPressed()) strafe -= 1f;
 			if (keyJump.isPressed()) jump = true;
 			if (keySneak.isPressed()) sneak = true;
-			if (keyYawLeft.isPressed()) yawDelta -= 5f;
-			if (keyYawRight.isPressed()) yawDelta += 5f;
+			if (keyYawLeft.isPressed()) yawDelta -= 0.5f;
+			if (keyYawRight.isPressed()) yawDelta += 0.5f;
 
 			if (forward != 0 || strafe != 0 || jump || sneak || yawDelta != 0) {
 				List<String> droneUUIDs = DroneControllerItem.getLinkedDroneUUIDs(held);

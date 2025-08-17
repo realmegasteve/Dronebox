@@ -74,7 +74,6 @@ public class Drone extends MobEntity {
 			py.runSetup();
 			pythonLoaded = true;
 		} catch (ExecutionException | InterruptedException e) {
-			//clear code when crashing
 			root.put("code", NbtString.of(""));
 			this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
 			e.printStackTrace();
@@ -89,7 +88,7 @@ public class Drone extends MobEntity {
 	}
 
 
-		private double smoothedNx = 0.0;
+	private double smoothedNx = 0.0;
 	private double smoothedNz = 0.0;
 
 	@Override
@@ -109,10 +108,8 @@ public class Drone extends MobEntity {
 			this.prevPitch = this.pitch;
 			this.prevRoll = this.roll;
 
+			this.yaw += this.yawRate;
 
-			this.yaw += (float) this.yawRate;
-
-			this.yaw += (float) this.yawRate;
 			this.move(MovementType.SELF, this.getVelocity());
 
 			double vx = velocity.x;
@@ -153,7 +150,7 @@ public class Drone extends MobEntity {
 
 
 			BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		// REMEMBER TO ACTUALLY IMPLEMENT THIS FUTURE ME!
+			// REMEMBER TO ACTUALLY IMPLEMENT THIS FUTURE ME!
 			for (int x = 0; x < width; x++) {
 				for (int y = 0; y < height; y++) {
 					image.setRGB(x, y, 0xFF00FF00);
@@ -199,12 +196,12 @@ public class Drone extends MobEntity {
 		NbtCompound root = comp.copyNbt();
 		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n");
 
-		if (loadedCode != ""){
+		if (!loadedCode.equals("")){
 			try {
 				py.run(loadedCode);
 				py.runTick();
 			} catch (ExecutionException | InterruptedException e) {
-				//clear code when crashing
+
 				root.put("code", NbtString.of(""));
 				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
 				e.printStackTrace();
@@ -213,9 +210,9 @@ public class Drone extends MobEntity {
 	}
 
 	private void physics(){
-		//======================[apply drag and gravity]======================
 
-		//Drag
+
+
 		Vec3d velocity = this.getVelocity();
 		double speed = velocity.length();
 
@@ -225,17 +222,10 @@ public class Drone extends MobEntity {
 
 		velocity = velocity.add(dragForce.multiply(0.002));
 
-
-
-		//Gravity
-		velocity.add(new Vec3d(0, -0.02, 0));
-
-
+		velocity = velocity.add(new Vec3d(0, -0.02, 0));
 
 		this.setVelocity(velocity);
 
-		//======================[Applying and closing]======================
-		//Apply rotation
 		this.prevYaw = this.yaw;
 		this.prevPitch = this.pitch;
 		this.prevRoll = this.roll;
@@ -246,7 +236,7 @@ public class Drone extends MobEntity {
 
 		System.out.println(yaw + "/" + pitch + "/" + roll);
 
-		//Apply movement
+
 		this.move(MovementType.SELF, this.getVelocity());
 	}
 
@@ -257,5 +247,10 @@ public class Drone extends MobEntity {
 	@Override
 	public float getYaw() {
 		return (float) yaw;
+	}
+
+
+	public float getPitch() {
+		return (float) pitch;
 	}
 }

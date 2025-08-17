@@ -1,7 +1,9 @@
 package net.Neomoon.dronebox.items;
 
+import net.Neomoon.dronebox.Drone;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.mob.PathAwareEntity;
@@ -24,13 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
-
 public class DroneRemoteItem extends Item {
 	public DroneRemoteItem(Settings settings) {
 		super(settings);
 	}
 	private static final String LINKED_LIST_KEY = "linked_drones";
+
 	@Override
 	public net.minecraft.util.ActionResult use(World world, PlayerEntity player, Hand hand) {
 		if (world.isClient) return net.minecraft.util.ActionResult.SUCCESS;
@@ -55,15 +56,53 @@ public class DroneRemoteItem extends Item {
 		for (String uuidStr : linked) {
 			try {
 				UUID uuid = UUID.fromString(uuidStr);
-				LivingEntity ent = (LivingEntity) serverWorld.getEntity(uuid);
+				Entity e = serverWorld.getEntity(uuid);
+				if (!(e instanceof LivingEntity ent)) continue;
+
 
 				if (ent instanceof PathAwareEntity mob) {
 					Path path = mob.getNavigation().findPathTo(target, 1);
 					if (path != null) {
 						mob.getNavigation().startMovingAlong(path, 1.2);
+					} else {
+
+						player.sendMessage(Text.literal("No path found for drone " + ent.getName().getString()), true);
+					}
+					continue;
+				}
+
+
+				if (ent instanceof Drone drone) {
+
+					Vec3d targetCenter = new Vec3d(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
+					Vec3d dronePos = drone.getPos();
+					Vec3d dir = targetCenter.subtract(dronePos);
+					double dist = dir.length();
+
+					if (dist > 0.5) {
+						Vec3d norm = dir.normalize();
+						double speed = 0.8;
+						double vx = norm.x * speed;
+						double vy = norm.y * speed;
+						double vz = norm.z * speed;
+
+						drone.setManualVelocity(vx, vy, vz);
+
+
+						double yawTarget = Math.toDegrees(Math.atan2(norm.z, norm.x)) - 90.0;
+						double yawDiff = yawTarget - drone.getYaw();
+
+						while (yawDiff <= -180) yawDiff += 360;
+						while (yawDiff > 180) yawDiff -= 360;
+						drone.setRotationVelocity(yawDiff * 0.2, 0.0, 0.0);
+					} else {
+						drone.setManualVelocity(0.0, 0.0, 0.0);
+						drone.setRotationVelocity(0.0, 0.0, 0.0);
 					}
 				}
-			} catch (Exception ignored) {}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 
 		player.sendMessage(Text.literal("Drones moving to " + target.toShortString()), true);
@@ -79,6 +118,55 @@ public class DroneRemoteItem extends Item {
 			player));
 	}
 
+	public void addDrone(ItemStack controllerStack, LivingEntity drone, PlayerEntity player) {
+		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+		NbtCompound root = comp.copyNbt();
+
+		NbtList linkedDrones;
+		if (!root.contains(LINKED_LIST_KEY)) {
+			linkedDrones = new NbtList();
+			root.put(LINKED_LIST_KEY, linkedDrones);
+		} else {
+			linkedDrones = root.getListOrEmpty(LINKED_LIST_KEY);
+		}
+
+		String uuidStr = drone.getUuidAsString();
+		boolean alreadyLinked = false;
+		int foundIndex = -1;
+
+		for (int i = 0; i < linkedDrones.size(); i++) {
+			if (linkedDrones.get(i) instanceof NbtString nbtStr) {
+				String stored = nbtStr.asString().orElse("");
+				if (uuidStr.equals(stored)) {
+					alreadyLinked = true;
+					foundIndex = i;
+					break;
+				}
+			}
+		}
+
+		if (alreadyLinked) {
+			if (foundIndex >= 0) linkedDrones.remove(foundIndex);
+			if (!player.getWorld().isClient) {
+				player.sendMessage(Text.literal("Drone removed from remote!"), true);
+			}
+		} else {
+			if (linkedDrones.size() >= 6) {
+				if (!player.getWorld().isClient) {
+					player.sendMessage(Text.literal("Maximum amount of Drones reached!"), true);
+				}
+				return;
+			}
+			linkedDrones.add(NbtString.of(uuidStr));
+			if (!player.getWorld().isClient) {
+				player.sendMessage(Text.literal("Drone added to remote!"), true);
+			}
+		}
+
+		root.put(LINKED_LIST_KEY, linkedDrones);
+		controllerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+	}
+
 	public static List<String> getLinkedDroneUUIDs(ItemStack controllerStack) {
 		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
@@ -91,7 +179,6 @@ public class DroneRemoteItem extends Item {
 			if (listTag.get(i) instanceof NbtString nbtStr) {
 				String raw = nbtStr.asString().orElse("").trim();
 
-
 				if (raw.startsWith("\"") && raw.endsWith("\"") && raw.length() > 2) {
 					raw = raw.substring(1, raw.length() - 1);
 				}
@@ -100,14 +187,13 @@ public class DroneRemoteItem extends Item {
 					UUID.fromString(raw);
 					linked_drones.add(raw);
 				} catch (IllegalArgumentException e) {
-					System.err.println("[DroneControllerItem] Skipping invalid stored UUID: '" + raw + "'");
+					System.err.println("[DroneRemoteItem] Skipping invalid stored UUID: '" + raw + "'");
 					modified = true;
 				}
 			} else {
 				modified = true;
 			}
 		}
-
 
 		if (modified) {
 			NbtList cleanList = new NbtList();
@@ -119,4 +205,13 @@ public class DroneRemoteItem extends Item {
 		return linked_drones;
 	}
 
+	@Override
+	public net.minecraft.util.ActionResult useOnEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, Hand hand) {
+		if (entity instanceof Drone drone) {
+			ItemStack stack2 = player.getStackInHand(hand);
+			addDrone(stack2, drone, player);
+			return net.minecraft.util.ActionResult.SUCCESS;
+		}
+		return net.minecraft.util.ActionResult.PASS;
+	}
 }
