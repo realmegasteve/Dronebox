@@ -58,7 +58,6 @@ public class DroneRenderer extends MobEntityRenderer<
 
 		state.prevYaw = drone.prevYaw;
 		state.yaw     = drone.getYaw();
-		System.out.println(drone.getYaw() + ", " + drone.getId());
 
 		state.prevPitch = drone.prevPitch;
 		state.pitch     = drone.getPitch();
@@ -79,8 +78,6 @@ public class DroneRenderer extends MobEntityRenderer<
 		double interpYaw   = state.entity.getHeadYaw();
 		double interpPitch = lerpAngle(tickDelta, state.prevPitch, state.pitch);
 		double interpRoll  = lerpAngle(tickDelta, state.prevRoll, state.roll);
-
-		state.entity.setManualVelocity(0,0.3,0);
 
 		super.setupTransforms(state, matrices, (float) 0, tickDelta);
 

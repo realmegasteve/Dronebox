@@ -107,9 +107,6 @@ public class Drone extends MobEntity {
 	@Override
 	public void tick() {
 		double yaw = this.getHeadYaw();
-
-		System.out.println("Nyaaa!: " + yaw + ", " + this.getId());
-
 		if (pythonLoaded) {
 			Vec3d velocity = this.getVelocity();
 			super.tick();
