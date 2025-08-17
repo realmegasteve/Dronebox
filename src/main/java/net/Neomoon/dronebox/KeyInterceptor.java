@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.Entity;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
@@ -67,6 +68,14 @@ public class KeyInterceptor {
 
 					MoveC2SPayload p = new MoveC2SPayload(uuid.toString(), forward, strafe, jump, sneak, yawDelta);
 					ClientPlayNetworking.send(p);
+
+					Entity e = client.world.getEntity(uuid);
+					if (e instanceof Drone drone) {
+						double forward2 = forward;
+						double strafe2 = strafe;
+						double up2 = (jump? 1 : 0) + (sneak? -1 : 0);
+						drone.controllerMovementInput(forward2, strafe2, up2, yawDelta);
+					}
 				}
 			}
 		});

@@ -58,6 +58,7 @@ public class DroneRenderer extends MobEntityRenderer<
 
 		state.prevYaw = drone.prevYaw;
 		state.yaw     = drone.getYaw();
+		System.out.println(drone.getYaw() + ", " + drone.getId());
 
 		state.prevPitch = drone.prevPitch;
 		state.pitch     = drone.getPitch();
@@ -75,17 +76,23 @@ public class DroneRenderer extends MobEntityRenderer<
 
 	@Override
 	protected void setupTransforms(DroneRenderState state, MatrixStack matrices, float yaw, float tickDelta) {
-		double interpYaw   = lerpAngle(tickDelta, state.prevYaw, state.yaw);
+		double interpYaw   = state.entity.getHeadYaw();
 		double interpPitch = lerpAngle(tickDelta, state.prevPitch, state.pitch);
 		double interpRoll  = lerpAngle(tickDelta, state.prevRoll, state.roll);
 
-		super.setupTransforms(state, matrices, (float) interpYaw, tickDelta);
+		state.entity.setManualVelocity(0,0.3,0);
+
+		super.setupTransforms(state, matrices, (float) 0, tickDelta);
 
 		Quaterniond quatD = new Quaterniond()
 			.rotateX(Math.toRadians(interpPitch))
-			.rotateZ(Math.toRadians(interpRoll));
+			.rotateZ(Math.toRadians(interpRoll))
+			.rotateY(Math.toRadians(interpYaw));
+
+		//System.out.println(interpYaw + ", " + interpPitch  + ", " + interpRoll);
 
 		matrices.multiply(new Quaternionf(quatD));
+
 	}
 
 	@Override

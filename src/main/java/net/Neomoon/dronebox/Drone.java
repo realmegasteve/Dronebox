@@ -2,6 +2,7 @@ package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.python.CustomRegexMarkersPython;
 import net.Neomoon.dronebox.python.MinecraftPythonInterpreter;
+import net.Neomoon.dronebox.python.PythonObjects.Controller;
 import net.Neomoon.dronebox.python.PythonObjects.PYDrone;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -33,7 +34,7 @@ public class Drone extends MobEntity {
 	public double pitchRate;
 	public double rollRate;
 	private double roll;
-	private double yaw;
+	private double getterYaw;
 	private double pitch;
 	private boolean pythonLoaded = false;
 
@@ -64,6 +65,7 @@ public class Drone extends MobEntity {
 		super(type, world);
 		this.setNoGravity(true);
 		py.set(new PYDrone(this), "drone");
+		py.set(new Controller(this), "controller");
 	}
 
 	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
@@ -104,6 +106,10 @@ public class Drone extends MobEntity {
 
 	@Override
 	public void tick() {
+		double yaw = this.getHeadYaw();
+
+		System.out.println("Nyaaa!: " + yaw + ", " + this.getId());
+
 		if (pythonLoaded) {
 			Vec3d velocity = this.getVelocity();
 			super.tick();
@@ -114,7 +120,7 @@ public class Drone extends MobEntity {
 		} else {
 
 			//Controller logic
-			double yawRad = Math.toRadians(this.getYaw());
+			double yawRad = Math.toRadians(yaw);
 			double moveSpeed = 0.35;
 			double controllerVx = (-Math.sin(yawRad) * forwardInput + Math.cos(yawRad) * strafeInput) * moveSpeed;
 			double controllerVz = (Math.cos(yawRad) * forwardInput + Math.sin(yawRad) * strafeInput) * moveSpeed;
@@ -133,11 +139,11 @@ public class Drone extends MobEntity {
 
 			Vec3d velocity = this.getVelocity();
 
-			this.prevYaw = this.yaw;
+			this.prevYaw = yaw;
 			this.prevPitch = this.pitch;
 			this.prevRoll = this.roll;
 
-			this.yaw += this.yawRate;
+			this.setHeadYaw((float) (yaw + this.yawRate));
 
 			this.move(MovementType.SELF, this.getVelocity());
 
@@ -239,9 +245,6 @@ public class Drone extends MobEntity {
 	}
 
 	private void physics(){
-
-
-
 		Vec3d velocity = this.getVelocity();
 		double speed = velocity.length();
 
@@ -256,16 +259,13 @@ public class Drone extends MobEntity {
 
 		this.setVelocity(velocity);
 
-		this.prevYaw = this.yaw;
+		this.prevYaw = this.getHeadYaw();
 		this.prevPitch = this.pitch;
 		this.prevRoll = this.roll;
 
-		this.yaw += this.yawRate;
+		this.setHeadYaw((float) (this.getHeadYaw() + this.yawRate));
 		this.pitch += this.pitchRate;
 		this.roll  += this.rollRate;
-
-		System.out.println(yaw + "/" + pitch + "/" + roll);
-
 
 		this.move(MovementType.SELF, this.getVelocity());
 	}
@@ -276,9 +276,8 @@ public class Drone extends MobEntity {
 
 	@Override
 	public float getYaw() {
-		return (float) yaw;
+		return (float) this.getHeadYaw();
 	}
-
 
 	public float getPitch() {
 		return (float) pitch;
