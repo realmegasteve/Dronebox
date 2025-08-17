@@ -187,8 +187,11 @@ public class PythonIDE extends Screen {
 		}
 		context.drawText(this.textRenderer, "Python IDE", 40, 10 - this.textRenderer.fontHeight - 10, 0xFFFFFFFF, true);
 
-		codeOutputLog.setMessage(Text.of(output));
+		try {
+			codeOutputLog.setMessage(Text.of(output));
+		} catch(RuntimeException e){
 
+		}
 		MultilineText console = MultilineText.create(MinecraftClient.getInstance().textRenderer, Text.of(python.console()));
 
 		if (drawConsole) {
