@@ -121,12 +121,13 @@ public class Drone extends MobEntity {
 		} else {
 			//Controller logic
 			double yawRad = Math.toRadians(yaw);
-			double moveSpeed = 0.35;
+			double moveSpeed = 0.1;
 			double controllerVx = (-Math.sin(yawRad) * forwardInput + Math.cos(yawRad) * strafeInput) * moveSpeed;
 			double controllerVz = (Math.cos(yawRad) * forwardInput + Math.sin(yawRad) * strafeInput) * moveSpeed;
 
 			double controllerVy = upInput * moveSpeed;
-			this.setManualVelocity(controllerVx, controllerVy, controllerVz);
+			double d = 0.8;
+			this.setManualVelocity(controllerVx + (d * getVelocity().x), controllerVy + (d * getVelocity().y), controllerVz + (d * getVelocity().z));
 
 			double yawRate = yawInput * 3.5;
 			this.setRotationVelocity(yawRate, 0.0, 0.0);
