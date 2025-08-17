@@ -35,11 +35,11 @@ public class ModItems {
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"googly")))));
 
 	public static final Item SPOTLIGHT_ACCESSORY = registerItem("spotlight",
-		new PythonPendriveItem(new Item.Settings().maxCount(1)
+		new Item(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"spotlight")))));
 
 	public static final Item TOPLIGHT_ACCESSORY = registerItem("toplight",
-		new PythonPendriveItem(new Item.Settings().maxCount(1)
+		new Item(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"toplight")))));
 
 

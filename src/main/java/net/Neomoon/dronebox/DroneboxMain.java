@@ -10,9 +10,13 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.entity.Entity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import org.python.antlr.op.Mod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +31,28 @@ public class DroneboxMain implements ModInitializer {
 	public void onInitialize() {
 		Radio.register();
 		ModItems.registerModItems();
+
+		DroneAccessories.registerAccessory(Items.FIREWORK_ROCKET, (drone, stack) -> {
+			EntityTextureRegistry.setTexture((ServerWorld) drone.getWorld(), drone.getUuid(), CentralDroneInit.DRONE_ENTITY_TYPE, 2);
+			drone.setVelocity(drone.getVelocity().multiply(1.5));
+		});
+
+		DroneAccessories.registerAccessory(ModItems.EYE_ACCESSORY, (drone, stack) -> {
+			EntityTextureRegistry.setTexture((ServerWorld) drone.getWorld(), drone.getUuid(), CentralDroneInit.DRONE_ENTITY_TYPE, 1);
+		});
+
+		DroneAccessories.registerAccessory(ModItems.SPOTLIGHT_ACCESSORY, (drone, stack) -> {
+			EntityTextureRegistry.setTexture((ServerWorld) drone.getWorld(), drone.getUuid(), CentralDroneInit.DRONE_ENTITY_TYPE, 4);
+		});
+
+		DroneAccessories.registerAccessory(ModItems.TOPLIGHT_ACCESSORY, (drone, stack) -> {
+			EntityTextureRegistry.setTexture((ServerWorld) drone.getWorld(), drone.getUuid(), CentralDroneInit.DRONE_ENTITY_TYPE, 3);
+		});
+		DroneAccessories.registerAccessory(ItemStack.EMPTY.getItem(), (drone, stack) -> {
+			EntityTextureRegistry.setTexture((ServerWorld) drone.getWorld(), drone.getUuid(), CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+		});
+
+
 
 		registerCommands();
 		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 0, Identifier.of(MOD_ID, "textures/entity/drone.png"));
