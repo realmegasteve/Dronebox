@@ -1,7 +1,6 @@
 package net.Neomoon.dronebox.items;
 
 import net.Neomoon.dronebox.DroneboxMain;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -11,8 +10,13 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 
 public class ModItems {
+
+	public static final Item DRONE = registerItem("drone",
+		new DroneItem(new Item.Settings().maxCount(1)
+			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID, "drone")))));
 
 	public static final Item DRONE_CONTROLLER = registerItem("controller",
 		new DroneControllerItem(new Item.Settings().maxCount(1)
@@ -34,11 +38,9 @@ public class ModItems {
 		new PythonPendriveItem(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"spotlight")))));
 
-
 	public static final Item TOPLIGHT_ACCESSORY = registerItem("toplight",
 		new PythonPendriveItem(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"toplight")))));
-
 
 
 	public static final RegistryKey<ItemGroup> DRONEBOX_GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP,
@@ -48,6 +50,7 @@ public class ModItems {
 		.icon(() -> new ItemStack(DRONE_CONTROLLER))
 		.displayName(Text.translatable("itemGroup.dronebox.dronebox"))
 		.entries((context, entries) -> {
+			entries.add(DRONE);
 			entries.add(DRONE_CONTROLLER);
 			entries.add(PYTHON_PENDRIVE);
 			entries.add(DRONE_REMOTE);
