@@ -52,17 +52,10 @@ public final class DroneNetworking {
 	private static void handleMovePayload(ServerPlayerEntity player, MoveC2SPayload payload) {
 		Entity e = findEntityByUUID(player, UUID.fromString(payload.droneUuid()));
 		if (e instanceof Drone drone) {
-			double yawRad = Math.toRadians(drone.getYaw());
 			double forward = payload.forward();
 			double strafe = payload.strafe();
-			double moveSpeed = 0.35;
-			double vx = (-Math.sin(yawRad) * forward + Math.cos(yawRad) * strafe) * moveSpeed;
-			double vz = (Math.cos(yawRad) * forward + Math.sin(yawRad) * strafe) * moveSpeed;
-			double vy = (payload.up() ? moveSpeed : 0) + (payload.down() ? -moveSpeed : 0);
-			drone.setManualVelocity(vx, vy, vz);
-
-			double yawRate = payload.yawInput() * 3.5;
-			drone.setRotationVelocity(yawRate, 0.0, 0.0);
+			double up = (payload.up()? 1 : 0) + (payload.down()? -1 : 0);
+			drone.controllerMovementInput(forward, strafe, up, payload.yawInput());
 		}
 	}
 

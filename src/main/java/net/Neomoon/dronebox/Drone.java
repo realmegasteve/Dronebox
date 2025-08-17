@@ -40,13 +40,17 @@ public class Drone extends MobEntity {
 	public double prevRoll;
 	public double prevYaw;
 	public double prevPitch;
-	private double dragCoefficient = 0.02;
+	public double strafeInput = 0;
+	public double forwardInput = 0;
+	public double yawInput = 0;
+	public double upInput = 0;
 
 	public static final TrackedData<Integer> TEXTURE_ID =
 		DataTracker.registerData(Drone.class, TrackedDataHandlerRegistry.INTEGER);
 
 
-	MinecraftPythonInterpreter py = new MinecraftPythonInterpreter();
+	final MinecraftPythonInterpreter py = new MinecraftPythonInterpreter();
+
 
 	public static DefaultAttributeContainer.Builder createDroneAttributes() {
 		return MobEntity.createMobAttributes()
@@ -60,6 +64,13 @@ public class Drone extends MobEntity {
 		super(type, world);
 		this.setNoGravity(true);
 		py.set(new PYDrone(this), "drone");
+	}
+
+	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
+		strafeInput = strafe;
+		forwardInput = forward;
+		yawInput = yaw;
+		upInput = up;
 	}
 
 	public void loadPythonScript(String code){
@@ -98,8 +109,26 @@ public class Drone extends MobEntity {
 			super.tick();
 			this.setVelocity(velocity);
 			runPython();
+			controllerMovementInput(0,0, 0,0);
 			physics();
 		} else {
+
+			//Controller logic
+			double yawRad = Math.toRadians(this.getYaw());
+			double moveSpeed = 0.35;
+			double controllerVx = (-Math.sin(yawRad) * forwardInput + Math.cos(yawRad) * strafeInput) * moveSpeed;
+			double controllerVz = (Math.cos(yawRad) * forwardInput + Math.sin(yawRad) * strafeInput) * moveSpeed;
+
+			double controllerVy = upInput * moveSpeed;
+			this.setManualVelocity(controllerVx, controllerVy, controllerVz);
+
+			double yawRate = yawInput * 3.5;
+			this.setRotationVelocity(yawRate, 0.0, 0.0);
+
+			controllerMovementInput(0,0, 0,0);
+
+
+			//physics
 			super.tick();
 
 			Vec3d velocity = this.getVelocity();
@@ -196,7 +225,7 @@ public class Drone extends MobEntity {
 		NbtCompound root = comp.copyNbt();
 		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n");
 
-		if (!loadedCode.equals("")){
+		if (!loadedCode.isEmpty()){
 			try {
 				py.run(loadedCode);
 				py.runTick();
@@ -216,6 +245,7 @@ public class Drone extends MobEntity {
 		Vec3d velocity = this.getVelocity();
 		double speed = velocity.length();
 
+		double dragCoefficient = 0.02;
 		double dragMagnitude = dragCoefficient * speed * speed;
 
 		Vec3d dragForce = velocity.normalize().multiply(-dragMagnitude);
