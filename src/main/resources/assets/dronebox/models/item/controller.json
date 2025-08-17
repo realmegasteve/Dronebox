@@ -2,8 +2,8 @@
 	"format_version": "1.21.6",
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "item/controller",
-		"particle": "item/controller"
+		"0": "dronebox:item/controller",
+		"particle": "dronebox:item/controller"
 	},
 	"elements": [
 		{

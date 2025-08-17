@@ -2,7 +2,7 @@
 	"format_version": "1.21.6",
 	"credit": "Made with Blockbench",
 	"textures": {
-		"1": "item/remote"
+		"1": "dronebox:item/remote"
 	},
 	"elements": [
 		{

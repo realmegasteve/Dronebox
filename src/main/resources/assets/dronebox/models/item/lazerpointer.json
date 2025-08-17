@@ -2,8 +2,8 @@
 	"format_version": "1.21.6",
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "lazerpointer",
-		"particle": "lazerpointer"
+		"0": "dronebox:lazerpointer",
+		"particle": "dronebox:lazerpointer"
 	},
 	"elements": [
 		{
