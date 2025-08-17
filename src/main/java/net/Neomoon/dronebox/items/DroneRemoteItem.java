@@ -75,30 +75,11 @@ public class DroneRemoteItem extends Item {
 				if (ent instanceof Drone drone) {
 
 					Vec3d targetCenter = new Vec3d(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
-					Vec3d dronePos = drone.getPos();
-					Vec3d dir = targetCenter.subtract(dronePos);
-					double dist = dir.length();
-
-					if (dist > 0.5) {
-						Vec3d norm = dir.normalize();
-						double speed = 0.8;
-						double vx = norm.x * speed;
-						double vy = norm.y * speed;
-						double vz = norm.z * speed;
-
-						drone.setManualVelocity(vx, vy, vz);
 
 
-						double yawTarget = Math.toDegrees(Math.atan2(norm.z, norm.x)) - 90.0;
-						double yawDiff = yawTarget - drone.getYaw();
+					drone.remoteTime = 0;
+					drone.remoteTarget = targetCenter;
 
-						while (yawDiff <= -180) yawDiff += 360;
-						while (yawDiff > 180) yawDiff -= 360;
-						drone.setRotationVelocity(yawDiff * 0.2, 0.0, 0.0);
-					} else {
-						drone.setManualVelocity(0.0, 0.0, 0.0);
-						drone.setRotationVelocity(0.0, 0.0, 0.0);
-					}
 				}
 			} catch (Exception ex) {
 				ex.printStackTrace();

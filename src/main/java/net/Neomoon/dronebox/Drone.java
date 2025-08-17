@@ -47,6 +47,9 @@ public class Drone extends MobEntity {
 	public double yawInput = 0;
 	public double upInput = 0;
 
+	public Vec3d remoteTarget;
+	public int remoteTime = 9999;
+
 	public static final TrackedData<Integer> TEXTURE_ID =
 		DataTracker.registerData(Drone.class, TrackedDataHandlerRegistry.INTEGER);
 
@@ -108,6 +111,7 @@ public class Drone extends MobEntity {
 
 	@Override
 	public void tick() {
+
 		double yaw = this.getHeadYaw();
 		if (pythonLoaded) {
 
@@ -133,6 +137,23 @@ public class Drone extends MobEntity {
 			this.setRotationVelocity(yawRate, 0.0, 0.0);
 
 			controllerMovementInput(0,0, 0,0);
+
+			if (remoteTime < 60){
+				double dist = remoteTarget.distanceTo(this.getPos());
+				if (dist > 0.5) {
+					remoteTime++;
+					Vec3d dir = remoteTarget.subtract(this.getPos()).normalize();
+					double speed = (0.02 * dist * dist) + 0.2;
+
+					Vec3d acell = dir.multiply(speed).multiply(0.2);
+
+					this.setVelocity(this.getVelocity().add(acell).multiply(0.9));
+				} else {
+					remoteTime += 3;
+					this.setVelocity(this.getVelocity().multiply(0.5));
+				}
+
+			}
 
 
 			//physics
@@ -178,6 +199,9 @@ public class Drone extends MobEntity {
 			this.roll += (targetRoll - this.roll) * tiltSmooth;
 		}
 	}
+
+
+
 
 	public byte[] renderCameraToBytes() {
 		try {
