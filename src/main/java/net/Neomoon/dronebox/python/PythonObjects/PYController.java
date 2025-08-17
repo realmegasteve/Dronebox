@@ -1,14 +1,11 @@
 package net.Neomoon.dronebox.python.PythonObjects;
 
 import net.Neomoon.dronebox.Drone;
-import net.minecraft.util.math.Vec3d;
-import org.python.core.PyFloat;
-import org.python.core.PyTuple;
 
-public class Controller {
+public class PYController {
 	Drone drone;
 
-	public Controller(Drone inDrone) {
+	public PYController(Drone inDrone) {
 		drone = inDrone;
 	}
 

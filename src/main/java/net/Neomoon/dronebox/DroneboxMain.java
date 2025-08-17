@@ -16,6 +16,7 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Random;
 import java.util.UUID;
 
 public class DroneboxMain implements ModInitializer {
@@ -24,6 +25,7 @@ public class DroneboxMain implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		Radio.register();
 		ModItems.registerModItems();
 
 		registerCommands();
