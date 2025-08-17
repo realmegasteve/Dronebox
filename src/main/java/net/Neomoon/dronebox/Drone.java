@@ -129,7 +129,7 @@ public class Drone extends MobEntity {
 			double d = 0.8;
 			this.setManualVelocity(controllerVx + (d * getVelocity().x), controllerVy + (d * getVelocity().y), controllerVz + (d * getVelocity().z));
 
-			double yawRate = yawInput * 3.5;
+			yawRate = yawInput * 4 + (0.6 * yawRate);
 			this.setRotationVelocity(yawRate, 0.0, 0.0);
 
 			controllerMovementInput(0,0, 0,0);
