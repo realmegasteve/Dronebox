@@ -2,8 +2,9 @@ package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.python.CustomRegexMarkersPython;
 import net.Neomoon.dronebox.python.MinecraftPythonInterpreter;
-import net.Neomoon.dronebox.python.PythonObjects.Controller;
+import net.Neomoon.dronebox.python.PythonObjects.PYController;
 import net.Neomoon.dronebox.python.PythonObjects.PYDrone;
+import net.Neomoon.dronebox.python.PythonObjects.PYRadio;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
@@ -65,7 +66,8 @@ public class Drone extends MobEntity {
 		super(type, world);
 		this.setNoGravity(true);
 		py.set(new PYDrone(this), "drone");
-		py.set(new Controller(this), "controller");
+		py.set(new PYController(this), "controller");
+		py.set(PYRadio.class, "radio");
 	}
 
 	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
@@ -108,14 +110,15 @@ public class Drone extends MobEntity {
 	public void tick() {
 		double yaw = this.getHeadYaw();
 		if (pythonLoaded) {
+
 			Vec3d velocity = this.getVelocity();
 			super.tick();
 			this.setVelocity(velocity);
 			runPython();
 			controllerMovementInput(0,0, 0,0);
 			physics();
-		} else {
 
+		} else {
 			//Controller logic
 			double yawRad = Math.toRadians(yaw);
 			double moveSpeed = 0.35;
@@ -245,7 +248,7 @@ public class Drone extends MobEntity {
 		Vec3d velocity = this.getVelocity();
 		double speed = velocity.length();
 
-		double dragCoefficient = 0.02;
+		double dragCoefficient = 0.03;
 		double dragMagnitude = dragCoefficient * speed * speed;
 
 		Vec3d dragForce = velocity.normalize().multiply(-dragMagnitude);
@@ -256,6 +259,8 @@ public class Drone extends MobEntity {
 
 		this.setVelocity(velocity);
 
+		this.move(MovementType.SELF, velocity);
+
 		this.prevYaw = this.getHeadYaw();
 		this.prevPitch = this.pitch;
 		this.prevRoll = this.roll;
@@ -264,7 +269,7 @@ public class Drone extends MobEntity {
 		this.pitch += this.pitchRate;
 		this.roll  += this.rollRate;
 
-		this.move(MovementType.SELF, this.getVelocity());
+
 	}
 
 	public double getRoll() {

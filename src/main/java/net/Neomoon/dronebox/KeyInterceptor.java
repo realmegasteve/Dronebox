@@ -56,7 +56,6 @@ public class KeyInterceptor {
 			if (forward != 0 || strafe != 0 || jump || sneak || yawDelta != 0) {
 				List<String> droneUUIDs = DroneControllerItem.getLinkedDroneUUIDs(held);
 				for (String uuidStr : droneUUIDs) {
-
 					if (!DroneControllerItem.isDroneControlEnabled(held, uuidStr)) continue;
 
 					UUID uuid;
