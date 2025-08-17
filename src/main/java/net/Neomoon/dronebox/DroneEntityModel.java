@@ -52,39 +52,185 @@ public class DroneEntityModel extends EntityModel<EntityRenderState> {
 		ModelData modelData = new ModelData();
 		ModelPartData root = modelData.getRoot();
 
-		ModelPartData accessories = root.addChild("accessories", ModelPartBuilder.create(), ModelTransform.rotation(0f, 23f, 0f));
-		ModelPartData fireworks = accessories.addChild("fireworks", ModelPartBuilder.create(), ModelTransform.rotation(0f, 0f, 0f));
-		ModelPartData right = fireworks.addChild("right", ModelPartBuilder.create().uv(6,11).cuboid(-3.0F,-2.0F,3.0F,4,1,1), ModelTransform.rotation(0f,0f,0f));
-		ModelPartData string2 = right.addChild("string2", ModelPartBuilder.create().uv(8,28).cuboid(-1.0F,-0.5F,0f,1,1,0), ModelTransform.rotation(2f,-1.5f,3.5f));
-		string2.addChild("cube_r1", ModelPartBuilder.create().uv(8,28).cuboid(-1.0F,-0.5F,0f,1,1,0), ModelTransform.rotation(0f,0f,0f));
-		ModelPartData left = fireworks.addChild("left", ModelPartBuilder.create().uv(6,11).cuboid(-3.0F,-2.0F,-1.0F,4,1,1), ModelTransform.rotation(0f,0f,0f));
-		ModelPartData string = left.addChild("string", ModelPartBuilder.create().uv(8,28).cuboid(-1.0F,-0.5F,0f,1,1,0), ModelTransform.rotation(2f,-1.5f,-0.5f));
-		string.addChild("cube_r2", ModelPartBuilder.create().uv(8,28).cuboid(-1.0F,-0.5F,0f,1,1,0), ModelTransform.rotation(0f,0f,0f));
-		accessories.addChild("toplamp", ModelPartBuilder.create().uv(18,18).cuboid(-2f,-3f,-1f,3,1,3).uv(18,13).cuboid(-2f,-4f,-1f,3,2,3,new Dilation(-0.25f)), ModelTransform.rotation(0f,0f,0f));
-		accessories.addChild("googlyeyes", ModelPartBuilder.create().uv(0,15).cuboid(-5f,-1.5f,1f,1,2,2).uv(0,11).cuboid(-5f,-1.5f,-2f,1,2,2), ModelTransform.rotation(0f,0f,0f));
-		ModelPartData spotlight = accessories.addChild("spotlight", ModelPartBuilder.create().uv(6,13).cuboid(-1.5f,0f,-1.5f,3,1,3).uv(6,17).cuboid(-1.5f,1f,-1.5f,3,2,3), ModelTransform.rotation(0f,0f,0f));
-		spotlight.addChild("bone", ModelPartBuilder.create().uv(0,5).cuboid(-1.5f,-1f,-1.5f,3,3,3,new Dilation(-0.1f)), ModelTransform.rotation(0f,0f,0f));
+		ModelPartData rootmodel = root.addChild("rootmodel",
+			ModelPartBuilder.create()
+				.uv(0, 0).cuboid(-3.5F, -1.0F, -1.5F, 7.0F, 2.0F, 3.0F, new Dilation(0.0F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, 0.0F, -1.5708F, 0.0F)
+		);
 
-		ModelPartData wing1 = root.addChild("wing1", ModelPartBuilder.create().uv(0,26).cuboid(-0.5f,-1f,0f,1,1,3).uv(8,26).cuboid(-0.5f,-2f,2f,1,1,1), ModelTransform.rotation(2.5f,0f,-1.2f));
-		ModelPartData propel1 = wing1.addChild("propel1", ModelPartBuilder.create(), ModelTransform.rotation(0f,0f,0f));
-		propel1.addChild("cube_r3", ModelPartBuilder.create().uv(12,5).cuboid(-0.5f,0f,-2.5f,1,0,5), ModelTransform.rotation(0f,0f,0f));
-		propel1.addChild("cube_r4", ModelPartBuilder.create().uv(12,5).cuboid(-0.5f,0f,-2.5f,1,0,5), ModelTransform.rotation(0f,0f,0f));
+		ModelPartData accessories = root.addChild("accessories",
+			ModelPartBuilder.create(),
 
-		ModelPartData wing2 = root.addChild("wing2", ModelPartBuilder.create().uv(0,26).cuboid(-1.8596f,-1f,2.4169f,1,1,3).uv(8,26).cuboid(-1.8596f,-2f,4.4169f,1,1,1), ModelTransform.rotation(0f,0f,0f));
-		ModelPartData propel2 = wing2.addChild("propel2", ModelPartBuilder.create(), ModelTransform.rotation(0f,0f,0f));
-		propel2.addChild("cube_r5", ModelPartBuilder.create().uv(12,5).cuboid(-0.5f,0f,-2.5f,1,0,5), ModelTransform.rotation(0f,0f,0f));
-		propel2.addChild("cube_r6", ModelPartBuilder.create().uv(12,5).cuboid(-0.5f,0f,-2.5f,1,0,5), ModelTransform.rotation(0f,0f,0f));
+			ModelTransform.of(0.5F, 1.0F, 1.0F, 0, 67.55F, 0)
+		);
 
-		ModelPartData wing3 = root.addChild("wing3", ModelPartBuilder.create().uv(0,26).cuboid(-0.5f,-1f,0f,1,1,3).uv(8,26).cuboid(-0.5f,-2f,2f,1,1,1), ModelTransform.rotation(2.5f,0f,1.2f));
-		ModelPartData propel3 = wing3.addChild("propel3", ModelPartBuilder.create(), ModelTransform.rotation(0f,0f,0f));
-		propel3.addChild("cube_r7", ModelPartBuilder.create().uv(12,5).cuboid(-0.5f,0f,-2.5f,1,0,5), ModelTransform.rotation(0f,0f,0f));
-		propel3.addChild("cube_r8", ModelPartBuilder.create().uv(12,5).cuboid(-0.5f,0f,-2.5f,1,0,5), ModelTransform.rotation(0f,0f,0f));
+		ModelPartData fireworks = accessories.addChild("fireworks",
+			ModelPartBuilder.create(),
+			ModelTransform.origin(0.0F, 0.0F, 0.0F)
+		);
 
-		ModelPartData wing4 = root.addChild("wing4", ModelPartBuilder.create().uv(0,26).cuboid(0.8596f,-1f,2.4169f,1,1,3).uv(8,26).cuboid(0.8596f,-2f,4.4169f,1,1,1), ModelTransform.rotation(0f,0f,0f));
-		ModelPartData propel4 = wing4.addChild("propel4", ModelPartBuilder.create(), ModelTransform.rotation(0f,0f,0f));
-		propel4.addChild("cube_r9", ModelPartBuilder.create().uv(12,5).cuboid(-0.5f,0f,-2.5f,1,0,5), ModelTransform.rotation(0f,0f,0f));
-		propel4.addChild("cube_r10", ModelPartBuilder.create().uv(12,5).cuboid(-0.5f,0f,-2.5f,1,0,5), ModelTransform.rotation(0f,0f,0f));
+		ModelPartData right = fireworks.addChild("right",
+			ModelPartBuilder.create().uv(6, 11)
+				.cuboid(-3.0F, -2.0F, 3.0F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)),
+			ModelTransform.origin(0.0F, 1.0F, -1.0F)
+		);
+
+		ModelPartData string2 = right.addChild("string2",
+			ModelPartBuilder.create().uv(8, 28)
+				.cuboid(-1.0F, -0.5F, 0.0F, 1.0F, 1.0F, 0.0F, new Dilation(0.01F)),
+			ModelTransform.of(2.0F, -1.5F, 3.5F, -0.7854F, 0.0F, 0.0F)
+		);
+
+		string2.addChild("cube_r1",
+			ModelPartBuilder.create().uv(8, 28)
+				.cuboid(-1.0F, -0.5F, 0.0F, 1.0F, 1.0F, 0.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, -1.5708F, 0.0F, 0.0F)
+		);
+
+		ModelPartData left = fireworks.addChild("left",
+			ModelPartBuilder.create().uv(6, 11)
+				.cuboid(-3.0F, -2.0F, -1.0F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)),
+			ModelTransform.origin(0.0F, 1.0F, -1.0F)
+		);
+
+		ModelPartData string = left.addChild("string",
+			ModelPartBuilder.create().uv(8, 28)
+				.cuboid(-1.0F, -0.5F, 0.0F, 1.0F, 1.0F, 0.0F, new Dilation(0.01F)),
+			ModelTransform.of(2.0F, -1.5F, -0.5F, -0.7854F, 0.0F, 0.0F)
+		);
+
+		string.addChild("cube_r2",
+			ModelPartBuilder.create().uv(8, 28)
+				.cuboid(-1.0F, -0.5F, 0.0F, 1.0F, 1.0F, 0.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, -1.5708F, 0.0F, 0.0F)
+		);
+
+		accessories.addChild("toplamp",
+			ModelPartBuilder.create()
+				.uv(18, 18).cuboid(-2.0F, -3.0F, -1.0F, 3.0F, 1.0F, 3.0F, new Dilation(0.0F))
+				.uv(18, 13).cuboid(-2.0F, -4.0F, -1.0F, 3.0F, 2.0F, 3.0F, new Dilation(-0.25F)),
+			ModelTransform.origin(0.0F, 0.0F, 0.0F)
+		);
+
+		accessories.addChild("googlyeyes",
+			ModelPartBuilder.create()
+				.uv(0, 15).cuboid(-5.0F, -1.5F, 1.0F, 1.0F, 2.0F, 2.0F, new Dilation(0.0F))
+				.uv(0, 11).cuboid(-5.0F, -1.5F, -2.0F, 1.0F, 2.0F, 2.0F, new Dilation(0.0F)),
+			ModelTransform.origin(0.0F, 0.0F, 0.0F)
+		);
+
+		ModelPartData spotlight = accessories.addChild("spotlight",
+			ModelPartBuilder.create()
+				.uv(6, 13).cuboid(-1.5F, 0.0F, -1.5F, 3.0F, 1.0F, 3.0F, new Dilation(0.0F))
+				.uv(6, 17).cuboid(-1.5F, 1.0F, -1.5F, 3.0F, 2.0F, 3.0F, new Dilation(0.0F)),
+			ModelTransform.origin(-0.5F, 0.0F, 0.5F)
+		);
+
+		spotlight.addChild("bone",
+			ModelPartBuilder.create().uv(0, 5)
+				.cuboid(-1.5F, -1.0F, -1.5F, 3.0F, 3.0F, 3.0F, new Dilation(-0.1F)),
+			ModelTransform.origin(0.0F, 2.5F, 0.0F)
+		);
+
+		ModelPartData wing1 = root.addChild("wing1",
+			ModelPartBuilder.create()
+				.uv(0, 26).cuboid(-0.5F, -1.0F, 0.0F, 1.0F, 1.0F, 3.0F, new Dilation(0.0F))
+				.uv(8, 26).cuboid(-0.5F, -2.0F, 2.0F, 1.0F, 1.0F, 1.0F, new Dilation(0.0F)),
+			ModelTransform.of(1.2F, 0.05F, -1.2F, -3.1416F, 0.6109F, 3.1416F)
+		);
+
+		ModelPartData propel1 = wing1.addChild("propel1",
+			ModelPartBuilder.create(),
+			ModelTransform.origin(0.0F, -2.0F, 2.5F)
+		);
+
+		propel1.addChild("cube_r3",
+			ModelPartBuilder.create().uv(12, 5)
+				.cuboid(-0.5F, 0.0F, -2.5F, 1.0F, 0.0F, 5.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, 0.0F, 0.6109F, 0.0F)
+		);
+
+		propel1.addChild("cube_r4",
+			ModelPartBuilder.create().uv(12, 5)
+				.cuboid(-0.5F, 0.0F, -2.5F, 1.0F, 0.0F, 5.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, 0.0F, -0.9599F, 0.0F)
+		);
+
+		ModelPartData wing2 = root.addChild("wing2",
+			ModelPartBuilder.create()
+				.uv(0, 26).cuboid(-1.8596F, -1.0F, 2.4169F, 1.0F, 1.0F, 3.0F, new Dilation(0.0F))
+				.uv(8, 26).cuboid(-1.8596F, -2.0F, 4.4169F, 1.0F, 1.0F, 1.0F, new Dilation(0.0F)),
+			ModelTransform.of(1.3F, 0.05F, 0.0F, 0.0F, -0.6109F, 0.0F)
+		);
+
+		ModelPartData propel2 = wing2.addChild("propel2",
+			ModelPartBuilder.create(),
+			ModelTransform.origin(-1.3596F, -2.0F, 4.9169F)
+		);
+
+		propel2.addChild("cube_r5",
+			ModelPartBuilder.create().uv(12, 5)
+				.cuboid(-0.5F, 0.0F, -2.5F, 1.0F, 0.0F, 5.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, -3.1416F, -0.6109F, -3.1416F)
+		);
+
+		propel2.addChild("cube_r6",
+			ModelPartBuilder.create().uv(12, 5)
+				.cuboid(-0.5F, 0.0F, -2.5F, 1.0F, 0.0F, 5.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, 0.0F, -0.9599F, 0.0F)
+		);
+
+		ModelPartData wing3 = root.addChild("wing3",
+			ModelPartBuilder.create()
+				.uv(0, 26).cuboid(-0.5F, -1.0F, 0.0F, 1.0F, 1.0F, 3.0F, new Dilation(0.0F))
+				.uv(8, 26).cuboid(-0.5F, -2.0F, 2.0F, 1.0F, 1.0F, 1.0F, new Dilation(0.0F)),
+			ModelTransform.of(1.2F, 0.05F, 1.2F, 0.0F, 0.6109F, 0.0F)
+		);
+
+		ModelPartData propel3 = wing3.addChild("propel3",
+			ModelPartBuilder.create(),
+			ModelTransform.origin(0.0F, -2.0F, 2.5F)
+		);
+
+		propel3.addChild("cube_r7",
+			ModelPartBuilder.create().uv(12, 5)
+				.cuboid(-0.5F, 0.0F, -2.5F, 1.0F, 0.0F, 5.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, 0.0F, -0.6109F, 0.0F)
+		);
+
+		propel3.addChild("cube_r8",
+			ModelPartBuilder.create().uv(12, 5)
+				.cuboid(-0.5F, 0.0F, -2.5F, 1.0F, 0.0F, 5.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, 0.0F, 0.9599F, 0.0F)
+		);
+
+		ModelPartData wing4 = root.addChild("wing4",
+			ModelPartBuilder.create()
+				.uv(0, 26).cuboid(0.8596F, -1.0F, 2.4169F, 1.0F, 1.0F, 3.0F, new Dilation(0.0F))
+				.uv(8, 26).cuboid(0.8596F, -2.0F, 4.4169F, 1.0F, 1.0F, 1.0F, new Dilation(0.0F)),
+			ModelTransform.of(1.3F, 0.05F, 0.0F, -3.1416F, -0.6109F, 3.1416F)
+		);
+
+		ModelPartData propel4 = wing4.addChild("propel4",
+			ModelPartBuilder.create(),
+			ModelTransform.origin(1.3596F, -2.0F, 4.9169F)
+		);
+
+		propel4.addChild("cube_r9",
+			ModelPartBuilder.create().uv(12, 5)
+				.cuboid(-0.5F, 0.0F, -2.5F, 1.0F, 0.0F, 5.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, 0.0F, -0.6109F, 0.0F)
+		);
+
+		propel4.addChild("cube_r10",
+			ModelPartBuilder.create().uv(12, 5)
+				.cuboid(-0.5F, 0.0F, -2.5F, 1.0F, 0.0F, 5.0F, new Dilation(0.01F)),
+			ModelTransform.of(0.0F, 0.0F, 0.0F, -3.1416F, -0.9599F, 3.1416F)
+		);
 
 		return TexturedModelData.of(modelData, 64, 64);
 	}
+
+
+
 }

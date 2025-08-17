@@ -1,6 +1,7 @@
 package net.Neomoon.dronebox.gui;
 
 import net.Neomoon.dronebox.CameraManager;
+import net.Neomoon.dronebox.DroneCameraManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.NativeImage;

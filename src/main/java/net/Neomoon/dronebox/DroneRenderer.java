@@ -20,22 +20,30 @@ public class DroneRenderer extends MobEntityRenderer<
 	> {
 
 	private static final Identifier TEXTURE =
-		Identifier.of("dronebox", "textures/entity/drone/drone");
+		Identifier.of("dronebox", "textures/entity/drone");
 
-	public static class DroneRenderState extends PhantomEntityRenderState {
+	public static class DroneRenderState extends DroneEntityRenderState {
+		public Drone entity;
+
 		public double roll;
 		public double Pitch;
 		public double yaw;
 	}
 
 	public DroneRenderer(EntityRendererFactory.Context context) {
-		super(context, new DroneEntityModel(context.getPart(EntityModelLayers.PHANTOM)), 0.75F);
+		super(context, new DroneEntityModel(context.getPart(DroneModelLayers.DRONE)), 0.75F);
 	}
+
 
 	@Override
 	public Identifier getTexture(DroneRenderState state) {
+		if (state != null && state.entity != null) {
+			return EntityTextureRegistry.getTexture(state.entity, TEXTURE);
+		}
 		return TEXTURE;
 	}
+
+
 
 	@Override
 	public DroneRenderState createRenderState() {
@@ -44,6 +52,8 @@ public class DroneRenderer extends MobEntityRenderer<
 
 	@Override
 	public void updateRenderState(Drone drone, DroneRenderState state, float tickDelta) {
+		state.entity = drone;
+
 		state.yaw   = drone.getYaw();
 		state.Pitch = drone.prevPitch;
 		state.roll  = drone.getRoll();

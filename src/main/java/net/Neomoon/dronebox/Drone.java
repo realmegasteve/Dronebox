@@ -11,6 +11,8 @@ import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtString;
@@ -39,6 +41,10 @@ public class Drone extends MobEntity {
 	public double prevYaw;
 	public double prevPitch;
 	private double dragCoefficient = 0.02;
+
+	public static final TrackedData<Integer> TEXTURE_ID =
+		DataTracker.registerData(Drone.class, TrackedDataHandlerRegistry.INTEGER);
+
 
 	MinecraftPythonInterpreter py = new MinecraftPythonInterpreter();
 
@@ -79,9 +85,11 @@ public class Drone extends MobEntity {
 	@Override
 	protected void initDataTracker(DataTracker.Builder builder) {
 		super.initDataTracker(builder);
+		builder.add(TEXTURE_ID, 0);
 	}
 
-	private double smoothedNx = 0.0;
+
+		private double smoothedNx = 0.0;
 	private double smoothedNz = 0.0;
 
 	@Override

@@ -1,6 +1,7 @@
 package net.Neomoon.dronebox.mixins;
 
 import net.Neomoon.dronebox.CameraManager;
+import net.Neomoon.dronebox.DroneCameraManager;
 import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

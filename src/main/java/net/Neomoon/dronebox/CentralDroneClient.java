@@ -29,6 +29,9 @@ public class CentralDroneClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 
+		DroneModelLayers.init();
+
+
 		EntityRendererRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, DroneRenderer::new);
 
 		ClientWorld world = MinecraftClient.getInstance().world;
