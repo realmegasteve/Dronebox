@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import java.util.List;
 
 public class DroneHUD {
+	private static boolean toggle = false;
 	private static final MinecraftClient mc = MinecraftClient.getInstance();
 	private static final Map<Integer, NativeImageBackedTexture> droneCams = new HashMap<>();
 
@@ -33,6 +34,7 @@ public class DroneHUD {
 		if (CameraManager.DroneCamera) {
 			return;
 		}
+		if (!toggle) return;
 		int SCREEN_WIDTH = 70;
 		int SCREEN_HEIGHT = 70;
 

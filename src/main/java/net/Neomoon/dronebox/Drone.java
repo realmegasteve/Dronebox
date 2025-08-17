@@ -17,16 +17,31 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
+import net.minecraft.util.ActionResult;
+import net.minecraft.registry.Registries;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 public class Drone extends MobEntity {
@@ -49,9 +64,18 @@ public class Drone extends MobEntity {
 	public static final TrackedData<Integer> TEXTURE_ID =
 		DataTracker.registerData(Drone.class, TrackedDataHandlerRegistry.INTEGER);
 
+	public static final TrackedData<Integer> ACCESSORY_RAW_ID =
+		DataTracker.registerData(Drone.class, TrackedDataHandlerRegistry.INTEGER);
+
+	public static final Map<Item, BiConsumer<World, UUID>> ITEM_BEHAVIORS = new HashMap<>();
+
+	public static void registerAccessoryBehavior(Item item, BiConsumer<World, UUID> behavior){
+		ITEM_BEHAVIORS.put(item, behavior);
+	}
 
 	final MinecraftPythonInterpreter py = new MinecraftPythonInterpreter();
 
+	private ItemStack accessoryStack = ItemStack.EMPTY;
 
 	public static DefaultAttributeContainer.Builder createDroneAttributes() {
 		return MobEntity.createMobAttributes()
@@ -98,6 +122,7 @@ public class Drone extends MobEntity {
 	protected void initDataTracker(DataTracker.Builder builder) {
 		super.initDataTracker(builder);
 		builder.add(TEXTURE_ID, 0);
+		builder.add(ACCESSORY_RAW_ID, -1);
 	}
 
 
@@ -107,6 +132,9 @@ public class Drone extends MobEntity {
 	@Override
 	public void tick() {
 		double yaw = this.getHeadYaw();
+
+		System.out.println("Nyaaa!: " + yaw + ", " + this.getId());
+
 		if (pythonLoaded) {
 			Vec3d velocity = this.getVelocity();
 			super.tick();
@@ -115,8 +143,6 @@ public class Drone extends MobEntity {
 			controllerMovementInput(0,0, 0,0);
 			physics();
 		} else {
-
-			//Controller logic
 			double yawRad = Math.toRadians(yaw);
 			double moveSpeed = 0.35;
 			double controllerVx = (-Math.sin(yawRad) * forwardInput + Math.cos(yawRad) * strafeInput) * moveSpeed;
@@ -130,8 +156,6 @@ public class Drone extends MobEntity {
 
 			controllerMovementInput(0,0, 0,0);
 
-
-			//physics
 			super.tick();
 
 			Vec3d velocity = this.getVelocity();
@@ -180,9 +204,7 @@ public class Drone extends MobEntity {
 			int width = 128;
 			int height = 128;
 
-
 			BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-			// REMEMBER TO ACTUALLY IMPLEMENT THIS FUTURE ME!
 			for (int x = 0; x < width; x++) {
 				for (int y = 0; y < height; y++) {
 					image.setRGB(x, y, 0xFF00FF00);
@@ -206,21 +228,194 @@ public class Drone extends MobEntity {
 	@Override
 	protected void readCustomData(ReadView view) {
 		super.readCustomData(view);
+
+		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+		NbtCompound root = comp.copyNbt();
+
+		if (root != null && root.contains("Accessory")) {
+			Optional<NbtCompound> accNbt = root.getCompound("Accessory");
+			if (accNbt != null) {
+				String itemId = accNbt.get().getString("Item", "Item");
+				Optional<Integer> count = accNbt.get().getInt("Count");
+				if (itemId != null && !itemId.isEmpty()) {
+					try {
+						Identifier id = Identifier.of(itemId);
+						Item item = Registries.ITEM.get(id);
+						if (item != null) {
+							this.accessoryStack = new ItemStack(item, Math.max(1, count.get()));
+							int rawId = Registries.ITEM.getRawId(item);
+							this.dataTracker.set(ACCESSORY_RAW_ID, rawId);
+						} else {
+							this.accessoryStack = ItemStack.EMPTY;
+							this.dataTracker.set(ACCESSORY_RAW_ID, -1);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						this.accessoryStack = ItemStack.EMPTY;
+						this.dataTracker.set(ACCESSORY_RAW_ID, -1);
+					}
+				} else {
+					this.accessoryStack = ItemStack.EMPTY;
+					this.dataTracker.set(ACCESSORY_RAW_ID, -1);
+				}
+			} else {
+				this.accessoryStack = ItemStack.EMPTY;
+				this.dataTracker.set(ACCESSORY_RAW_ID, -1);
+			}
+		} else {
+			this.accessoryStack = ItemStack.EMPTY;
+			this.dataTracker.set(ACCESSORY_RAW_ID, -1);
+		}
 	}
 
 	@Override
 	protected void writeCustomData(WriteView view) {
 		super.writeCustomData(view);
+
+		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+		NbtCompound root = comp.copyNbt();
+
+		if (this.accessoryStack != null && !this.accessoryStack.isEmpty()) {
+			NbtCompound accNbt = new NbtCompound();
+			Identifier id = Registries.ITEM.getId(this.accessoryStack.getItem());
+			accNbt.putString("Item", (id != null) ? id.toString() : "");
+			accNbt.putInt("Count", this.accessoryStack.getCount());
+			root.put("Accessory", accNbt);
+		} else {
+			root.remove("Accessory");
+		}
+
+		this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
 	}
 
-	public void setManualVelocity(double vx, double vy, double vz) {
-		this.setVelocity(vx, vy, vz);
+	public boolean equipAccessoryFromStack(ItemStack stack) {
+		if (stack == null) return false;
+		if (stack.isEmpty()) return false;
+		if (!ITEM_BEHAVIORS.containsKey(stack.getItem())) return false;
+		if (this.accessoryStack != null && !this.accessoryStack.isEmpty()) return false;
+
+		ItemStack copy = stack.copy();
+		copy.setCount(1);
+		this.accessoryStack = copy;
+
+		int rawId = Registries.ITEM.getRawId(copy.getItem());
+		this.dataTracker.set(ACCESSORY_RAW_ID, rawId);
+
+		if (!this.getWorld().isClient) {
+			BiConsumer<World, UUID> behavior = ITEM_BEHAVIORS.get(copy.getItem());
+			if (behavior != null) {
+				try {
+					behavior.accept(this.getWorld(), this.getUuid());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		this.syncAccessoryToNbt();
+
+		return true;
 	}
 
-	public void setRotationVelocity(double yawRate, double pitchRate, double rollRate) {
-		this.yawRate = yawRate;
-		this.pitchRate = pitchRate;
-		this.rollRate = rollRate;
+	public ItemStack unequipAccessory() {
+		if (this.accessoryStack == null || this.accessoryStack.isEmpty()) {
+			this.accessoryStack = ItemStack.EMPTY;
+			this.dataTracker.set(ACCESSORY_RAW_ID, -1);
+			this.syncAccessoryToNbt();
+			return ItemStack.EMPTY;
+		}
+		ItemStack old = this.accessoryStack;
+		this.accessoryStack = ItemStack.EMPTY;
+		this.dataTracker.set(ACCESSORY_RAW_ID, -1);
+		this.syncAccessoryToNbt();
+		return old;
+	}
+
+	public boolean canEquipAccessory(ItemStack stack) {
+		return stack != null && !stack.isEmpty() && ITEM_BEHAVIORS.containsKey(stack.getItem());
+	}
+
+	@Override
+	public ActionResult interactMob(PlayerEntity player, Hand hand) {
+		if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
+
+		ItemStack held = player.getStackInHand(hand);
+
+		if (!held.isEmpty() && canEquipAccessory(held) && (this.accessoryStack == null || this.accessoryStack.isEmpty()) && !player.isSneaking()) {
+			ItemStack taken = held.split(1);
+			boolean ok = this.equipAccessoryFromStack(taken);
+			if (ok) {
+				player.setStackInHand(hand, held);
+				if (!this.getWorld().isClient) {
+					player.sendMessage(Text.of("Accessory equipped"), true);
+				}
+				return ActionResult.SUCCESS;
+			} else {
+				held.increment(1);
+				player.setStackInHand(hand, held);
+				return ActionResult.FAIL;
+			}
+		}
+
+		if ((held.isEmpty() || player.isSneaking())) {
+			if (this.accessoryStack != null && !this.accessoryStack.isEmpty()) {
+				ItemStack toGive = this.unequipAccessory();
+				boolean given = player.giveItemStack(toGive);
+				if (!given) {
+					this.dropStack((ServerWorld) this.getWorld(), toGive);
+				}
+				if (!this.getWorld().isClient) {
+					player.sendMessage(Text.of("Accessory removed"), true);
+				}
+				return ActionResult.SUCCESS;
+			} else {
+				if (!this.getWorld().isClient) {
+					player.sendMessage(Text.of("Accessory slot empty"), true);
+				}
+				return ActionResult.SUCCESS;
+			}
+		}
+
+		return ActionResult.PASS;
+	}
+
+	private void syncAccessoryToNbt() {
+		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+		NbtCompound root = comp.copyNbt();
+		if (this.accessoryStack != null && !this.accessoryStack.isEmpty()) {
+			NbtCompound accNbt = new NbtCompound();
+			Identifier id = Registries.ITEM.getId(this.accessoryStack.getItem());
+			accNbt.putString("Item", (id != null) ? id.toString() : "");
+			accNbt.putInt("Count", this.accessoryStack.getCount());
+			root.put("Accessory", accNbt);
+		} else {
+			root.remove("Accessory");
+		}
+		this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+	}
+
+	@Override
+	public void onTrackedDataSet(TrackedData<?> data) {
+		super.onTrackedDataSet(data);
+
+		if (data == ACCESSORY_RAW_ID) {
+			if (this.getWorld() != null && this.getWorld().isClient) {
+				int rawId = this.dataTracker.get(ACCESSORY_RAW_ID);
+				if (rawId >= 0) {
+					Item item = Registries.ITEM.get(rawId);
+					if (item != null) {
+						BiConsumer<World, UUID> behavior = ITEM_BEHAVIORS.get(item);
+						if (behavior != null) {
+							try {
+								behavior.accept(this.getWorld(), this.getUuid());
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private void runPython(){
@@ -233,7 +428,6 @@ public class Drone extends MobEntity {
 				py.run(loadedCode);
 				py.runTick();
 			} catch (ExecutionException | InterruptedException e) {
-
 				root.put("code", NbtString.of(""));
 				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
 				e.printStackTrace();
@@ -278,5 +472,15 @@ public class Drone extends MobEntity {
 
 	public float getPitch() {
 		return (float) pitch;
+	}
+
+	public void setManualVelocity(double vx, double vy, double vz) {
+		this.setVelocity(vx, vy, vz);
+	}
+
+	public void setRotationVelocity(double yawRate, double pitchRate, double rollRate) {
+		this.yawRate = yawRate;
+		this.pitchRate = pitchRate;
+		this.rollRate = rollRate;
 	}
 }
