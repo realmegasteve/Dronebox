@@ -1,10 +1,9 @@
 {
 	"format_version": "1.21.6",
 	"credit": "Made with Blockbench",
-	"parent": "item/generated",
 	"texture_size": [64, 64],
 	"textures": {
-		"layer0": "dronebox:block/drone"
+		"0": "dronebox:block/drone"
 	},
 	"elements": [
 		{
