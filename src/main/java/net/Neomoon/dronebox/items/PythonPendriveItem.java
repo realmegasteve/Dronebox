@@ -17,7 +17,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
 public class PythonPendriveItem extends Item {
-	MinecraftPythonInterpreter py = new MinecraftPythonInterpreter().init();
 
 	public PythonPendriveItem(Settings settings) {
 		super(settings);
@@ -25,28 +24,37 @@ public class PythonPendriveItem extends Item {
 
 	@Override
 	public ActionResult use(World world, PlayerEntity player, Hand hand) {
-			if (player.isSneaking()) {
-				MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty(), player.getStackInHand(hand)));
+		if (player.isSneaking()) {
+			ItemStack stack = player.getStackInHand(hand);
+			Drone drone = getPlayerDrone(player); // implement this to get a drone reference
+			if (drone != null) {
+				MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty(), stack, drone));
 			}
+		}
 		return ActionResult.SUCCESS;
 	}
 
 	@Override
 	public ActionResult useOnEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, Hand hand) {
 		if (entity instanceof Drone drone) {
-			ItemStack stack2 = player.getStackInHand(hand);
-			writeCode(stack2, drone);
+			writeCode(stack, drone);
 			return ActionResult.SUCCESS;
 		}
 		return ActionResult.PASS;
 	}
 
-	private void writeCode(ItemStack drive, Drone drone){
-		//load drive code
-		NbtComponent comp2 = drive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root2 = comp2.copyNbt();
-		String loadedCode = root2.getString("code", "");
-
+	private void writeCode(ItemStack drive, Drone drone) {
+		// Load code from the drive
+		NbtComponent comp = drive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+		NbtCompound root = comp.copyNbt();
+		String loadedCode = root.getString("code", "");
 		drone.loadPythonScript(loadedCode);
+	}
+
+	// Example method to get a drone from the player
+	private Drone getPlayerDrone(PlayerEntity player) {
+		// Return the first drone this player owns / holds
+		// Replace with your actual logic to get a Drone reference
+		return null;
 	}
 }
