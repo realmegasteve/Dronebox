@@ -26,10 +26,6 @@ public class ModItems {
 		new DroneRemoteItem(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID, "remote")))));
 
-	public static final Item PYTHON_PENDRIVE = registerItem("python_pendrive",
-		new PythonPendriveItem(new Item.Settings().maxCount(1)
-			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"python_pendrive")))));
-
 	public static final Item EYE_ACCESSORY = registerItem("googly",
 		new Item(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"googly")))));
@@ -52,7 +48,6 @@ public class ModItems {
 		.entries((context, entries) -> {
 			entries.add(DRONE);
 			entries.add(DRONE_CONTROLLER);
-			entries.add(PYTHON_PENDRIVE);
 			entries.add(DRONE_REMOTE);
 			entries.add(EYE_ACCESSORY);
 			entries.add(SPOTLIGHT_ACCESSORY);

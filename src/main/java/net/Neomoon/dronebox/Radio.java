@@ -1,6 +1,5 @@
 package net.Neomoon.dronebox;
 
-import net.Neomoon.dronebox.python.PythonObjects.PYRadio;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import java.util.HashMap;
