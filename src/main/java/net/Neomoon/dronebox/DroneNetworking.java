@@ -14,6 +14,13 @@ import java.util.UUID;
 
 public final class DroneNetworking {
 	private DroneNetworking() {}
+public static void registerclient(){
+	PayloadTypeRegistry.playS2C().register(ViewUpdatePayload.ID, ViewUpdatePayload.CODEC);
+	ClientPlayNetworking.registerGlobalReceiver(ViewUpdatePayload.ID, (payload, context) -> {
+		ClientPlayerEntity player = context.player();
+		context.client().execute(() -> handleViewupdatePayload(player, payload));
+	});
+}
 
 	public static void register() {
 
@@ -22,7 +29,7 @@ public final class DroneNetworking {
 		PayloadTypeRegistry.playC2S().register(RequestCameraPayload.ID, RequestCameraPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(CameraFramePayload.ID, CameraFramePayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ViewTogglePayload.ID, ViewTogglePayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(ViewUpdatePayload.ID, ViewUpdatePayload.CODEC);
+
 
 
 		ServerPlayNetworking.registerGlobalReceiver(MoveC2SPayload.ID, (payload, context) -> {
@@ -43,10 +50,7 @@ public final class DroneNetworking {
 			ServerPlayerEntity player = context.player();
 			context.server().execute(() -> handleViewtogglePayload(player, payload));
 		});
-		ClientPlayNetworking.registerGlobalReceiver(ViewUpdatePayload.ID, (payload, context) -> {
-			ClientPlayerEntity player = context.player();
-			context.client().execute(() -> handleViewupdatePayload(player, payload));
-		});
+
 	}
 
 	private static void handleMovePayload(ServerPlayerEntity player, MoveC2SPayload payload) {

@@ -1,6 +1,7 @@
 package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.gui.DroneHUD;
+
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.items.ModItems;
 import net.Neomoon.dronebox.network.RequestCameraPayload;
@@ -28,7 +29,7 @@ public class CentralDroneClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-
+		DroneNetworking.registerclient();
 		DroneModelLayers.init();
 
 

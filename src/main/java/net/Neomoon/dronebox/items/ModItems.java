@@ -26,6 +26,7 @@ public class ModItems {
 		new DroneRemoteItem(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID, "remote")))));
 
+
 	public static final Item EYE_ACCESSORY = registerItem("googly",
 		new Item(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"googly")))));
@@ -38,22 +39,10 @@ public class ModItems {
 		new Item(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"toplight")))));
 
-
 	public static final RegistryKey<ItemGroup> DRONEBOX_GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP,
 		Identifier.of(DroneboxMain.MOD_ID, "dronebox"));
 
-	public static final ItemGroup DRONEBOX_GROUP = FabricItemGroup.builder()
-		.icon(() -> new ItemStack(DRONE_CONTROLLER))
-		.displayName(Text.translatable("itemGroup.dronebox.dronebox"))
-		.entries((context, entries) -> {
-			entries.add(DRONE);
-			entries.add(DRONE_CONTROLLER);
-			entries.add(DRONE_REMOTE);
-			entries.add(EYE_ACCESSORY);
-			entries.add(SPOTLIGHT_ACCESSORY);
-			entries.add(TOPLIGHT_ACCESSORY);
-		})
-		.build();
+	private static ItemGroup DRONEBOX_GROUP = null;
 
 	private static Item registerItem(String name, Item item) {
 		return Registry.register(Registries.ITEM, Identifier.of(DroneboxMain.MOD_ID, name), item);
@@ -61,6 +50,19 @@ public class ModItems {
 
 	public static void registerModItems() {
 		DroneboxMain.LOGGER.info("Registering Mod Items for " + DroneboxMain.MOD_ID);
+
+		DRONEBOX_GROUP = FabricItemGroup.builder()
+			.icon(() -> new ItemStack(DRONE_CONTROLLER))
+			.displayName(Text.translatable("itemGroup.dronebox.dronebox"))
+			.entries((context, entries) -> {
+				entries.add(DRONE);
+				entries.add(DRONE_CONTROLLER);
+				entries.add(DRONE_REMOTE);
+				entries.add(EYE_ACCESSORY);
+				entries.add(SPOTLIGHT_ACCESSORY);
+				entries.add(TOPLIGHT_ACCESSORY);
+			})
+			.build();
 
 		Registry.register(Registries.ITEM_GROUP, DRONEBOX_GROUP_KEY, DRONEBOX_GROUP);
 	}

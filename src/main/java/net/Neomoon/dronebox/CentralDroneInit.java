@@ -20,7 +20,6 @@ public class CentralDroneInit implements ModInitializer {
 	public static final RegistryKey<EntityType<?>> DRONE_KEY =
 		RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(DroneboxMain.MOD_ID, "drone"));
 
-	public static Item DRONE_CONTROLLER;
 
 	@Override
 	public void onInitialize() {
@@ -34,7 +33,7 @@ public class CentralDroneInit implements ModInitializer {
 		FabricDefaultAttributeRegistry.register(DRONE_ENTITY_TYPE, Drone.createDroneAttributes());
 		DroneNetworking.register();
 
-		DRONE_CONTROLLER = ModItems.DRONE_CONTROLLER;
+
 
 
 	}

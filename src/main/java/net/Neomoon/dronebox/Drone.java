@@ -11,18 +11,27 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class Drone extends MobEntity {
@@ -48,6 +57,109 @@ public class Drone extends MobEntity {
 	public static final TrackedData<Integer> TEXTURE_ID =
 		DataTracker.registerData(Drone.class, TrackedDataHandlerRegistry.INTEGER);
 
+	private static final ChunkTicketType DRONE_TICKET =
+		ChunkTicketType.PLAYER_SIMULATION;
+
+	// === Accessory System ===
+	public interface AccessoryApply {
+		void apply(World world, UUID droneId, Drone drone);
+	}
+	public interface AccessoryTick {
+		void tick(World world, UUID droneId, Drone drone);
+	}
+	public interface AccessoryRemove {
+		void remove(World world, UUID droneId, Drone drone);
+	}
+
+	private static final Map<Item, List<AccessoryApply>> APPLY_HANDLERS = new HashMap<>();
+	private static final Map<Item, List<AccessoryTick>> TICK_HANDLERS = new HashMap<>();
+	private static final Map<Item, List<AccessoryRemove>> REMOVE_HANDLERS = new HashMap<>();
+
+	private final Map<Item, Integer> equippedAccessories = new HashMap<>();
+
+	public static void registerAccessory(Item item, AccessoryApply onApply, AccessoryTick onTick, AccessoryRemove onRemove) {
+		if (onApply != null) APPLY_HANDLERS.computeIfAbsent(item, k -> new ArrayList<>()).add(onApply);
+		if (onTick != null) TICK_HANDLERS.computeIfAbsent(item, k -> new ArrayList<>()).add(onTick);
+		if (onRemove != null) REMOVE_HANDLERS.computeIfAbsent(item, k -> new ArrayList<>()).add(onRemove);
+	}
+
+	@Override
+	public ActionResult interactMob(PlayerEntity player, Hand hand) {
+		ItemStack held = player.getStackInHand(hand);
+
+		// Shift + right-click with empty hand -> retrieve and remove one accessory (first one found)
+		if (player.isSneaking() && held.isEmpty()) {
+			Iterator<Item> it = equippedAccessories.keySet().iterator();
+			if (it.hasNext()) {
+				Item acc = it.next();
+				// remove from drone and run remove handlers
+				removeAccessory(acc);
+				ItemStack returnStack = new ItemStack(acc);
+				if (!player.getInventory().insertStack(returnStack)) {
+					player.dropItem(returnStack, false);
+				}
+				return ActionResult.SUCCESS;
+			}
+			return ActionResult.PASS;
+		}
+
+		// Right-click with an accessory in hand -> attach / swap
+		if (!held.isEmpty()) {
+			Item heldItem = held.getItem();
+			boolean isAccessory = APPLY_HANDLERS.containsKey(heldItem) || TICK_HANDLERS.containsKey(heldItem) || REMOVE_HANDLERS.containsKey(heldItem);
+			if (isAccessory) {
+				// If the drone already has the same accessory, remove it back to player (toggle off)
+				if (equippedAccessories.containsKey(heldItem)) {
+					removeAccessory(heldItem);
+					// give one back to the player (unless creative)
+					if (!player.isCreative()) {
+						ItemStack give = new ItemStack(heldItem);
+						if (!player.getInventory().insertStack(give)) player.dropItem(give, false);
+					}
+					return ActionResult.SUCCESS;
+				}
+
+				// Swap: if drone has any accessory, remove the first and give to player
+				Item prev = null;
+				if (!equippedAccessories.isEmpty()) {
+					Iterator<Item> it = equippedAccessories.keySet().iterator();
+					if (it.hasNext()) {
+						prev = it.next();
+						removeAccessory(prev);
+						ItemStack prevStack = new ItemStack(prev);
+						if (!player.getInventory().insertStack(prevStack)) player.dropItem(prevStack, false);
+					}
+				}
+
+				// Attach held accessory
+				equippedAccessories.put(heldItem, 1);
+				if (!player.isCreative()) held.decrement(1);
+				if (APPLY_HANDLERS.containsKey(heldItem)) {
+					for (AccessoryApply fn : APPLY_HANDLERS.get(heldItem)) fn.apply(this.getWorld(), this.getUuid(), this);
+				}
+				return ActionResult.SUCCESS;
+			}
+		}
+
+		return super.interactMob(player, hand);
+	}
+
+	private void removeAccessory(Item item) {
+		if (equippedAccessories.remove(item) != null) {
+			if (REMOVE_HANDLERS.containsKey(item)) {
+				for (AccessoryRemove fn : REMOVE_HANDLERS.get(item)) {
+					fn.remove(getWorld(), this.getUuid(), this);
+				}
+			}
+			onAccessoryReset();
+		}
+	}
+
+	protected void onAccessoryReset() {
+		// Called when an accessory slot is emptied
+	}
+
+	// === Normal Drone ===
 	public static DefaultAttributeContainer.Builder createDroneAttributes() {
 		return MobEntity.createMobAttributes()
 			.add(EntityAttributes.MAX_HEALTH, 20.0)
@@ -80,6 +192,30 @@ public class Drone extends MobEntity {
 
 	@Override
 	public void tick() {
+		// Tick accessories
+		for (Item acc : equippedAccessories.keySet()) {
+			if (TICK_HANDLERS.containsKey(acc)) {
+				for (AccessoryTick fn : TICK_HANDLERS.get(acc)) {
+					fn.tick(getWorld(), this.getUuid(), this);
+				}
+			}
+		}
+
+		if (!this.getWorld().isClient() && this.getWorld() instanceof ServerWorld serverWorld) {
+			ChunkPos center = new ChunkPos(this.getBlockPos());
+
+			int radius = 2; // same as vanilla player's simulation distance radius
+			for (int dx = -radius; dx <= radius; dx++) {
+				for (int dz = -radius; dz <= radius; dz++) {
+					ChunkPos pos = new ChunkPos(center.x + dx, center.z + dz);
+					serverWorld.getChunkManager().addTicket(
+						DRONE_TICKET,
+						pos,
+						2    // 2 = fully ticking like player
+					);
+				}
+			}
+		}
 
 		double yaw = this.getHeadYaw();
 		if (pythonLoaded) {
@@ -129,6 +265,10 @@ public class Drone extends MobEntity {
 
 			Vec3d velocity = this.getVelocity();
 
+
+
+
+
 			this.prevYaw = yaw;
 			this.prevPitch = this.pitch;
 			this.prevRoll = this.roll;
@@ -168,7 +308,14 @@ public class Drone extends MobEntity {
 		}
 	}
 
-
+	@Override
+	public void remove(RemovalReason reason) {
+		if (!this.getWorld().isClient() && this.getWorld() instanceof ServerWorld serverWorld) {
+			ChunkPos pos = new ChunkPos(this.getBlockPos());
+			serverWorld.getChunkManager().removeTicket(DRONE_TICKET, pos, 2);
+		}
+		super.remove(reason);
+	}
 
 
 	public byte[] renderCameraToBytes() {
@@ -243,8 +390,6 @@ public class Drone extends MobEntity {
 		this.setHeadYaw((float) (this.getHeadYaw() + this.yawRate));
 		this.pitch += this.pitchRate;
 		this.roll  += this.rollRate;
-
-
 	}
 
 	public double getRoll() {
