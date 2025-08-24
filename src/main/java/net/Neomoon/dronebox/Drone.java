@@ -36,7 +36,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class Drone extends MobEntity {
@@ -57,6 +56,8 @@ public class Drone extends MobEntity {
 
 	public Vec3d remoteTarget;
 	public int remoteTime = 9999;
+
+	final MinecraftLuaInterpreter Lua = new MinecraftLuaInterpreter();
 
 	public static final TrackedData<Integer> TEXTURE_ID =
 		DataTracker.registerData(Drone.class, TrackedDataHandlerRegistry.INTEGER);
@@ -175,10 +176,10 @@ public class Drone extends MobEntity {
 	public Drone(EntityType<? extends Drone> type, World world) {
 		super(type, world);
 		this.setNoGravity(true);
-		py.set(new LUADrone(this), "drone");
-		py.set(new LUAController(this), "controller");
-		py.set(new LUARadio(), "radio");
-		py.set(Math.class, "math");
+		Lua.set(new LUADrone(this), "drone");
+		Lua.set(new LUAController(this), "controller");
+		Lua.set(new LUARadio(), "radio");
+		Lua.set(Math.class, "math");
 	}
 
 	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
@@ -196,8 +197,8 @@ public class Drone extends MobEntity {
 		this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
 
 		try {
-			py.run(code.replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"));
-			py.runSetup();
+			Lua.run(code.replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"));
+			Lua.runSetup();
 			pythonLoaded = true;
 		} catch (ExecutionException | InterruptedException e) {
 			root.put("code", NbtString.of(""));
@@ -398,8 +399,8 @@ public class Drone extends MobEntity {
 
 		if (!loadedCode.isEmpty()){
 			try {
-				py.run(loadedCode);
-				py.runTick();
+				Lua.run(loadedCode);
+				Lua.runTick();
 			} catch (ExecutionException | InterruptedException e) {
 
 				root.put("code", NbtString.of(""));
