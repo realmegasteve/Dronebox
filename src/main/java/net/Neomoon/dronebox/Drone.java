@@ -1,5 +1,10 @@
 package net.Neomoon.dronebox;
 
+import net.Neomoon.dronebox.LUA.CustomRegexMarkersLUA;
+import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
+import net.Neomoon.dronebox.LUA.LUAObjects.LUAController;
+import net.Neomoon.dronebox.LUA.LUAObjects.LUADrone;
+import net.Neomoon.dronebox.LUA.LUAObjects.LUARadio;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
@@ -39,7 +44,6 @@ public class Drone extends MobEntity {
 	public double pitchRate;
 	public double rollRate;
 	private double roll;
-	private double getterYaw;
 	private double pitch;
 	private boolean pythonLoaded = false;
 
@@ -171,6 +175,10 @@ public class Drone extends MobEntity {
 	public Drone(EntityType<? extends Drone> type, World world) {
 		super(type, world);
 		this.setNoGravity(true);
+		py.set(new LUADrone(this), "drone");
+		py.set(new LUAController(this), "controller");
+		py.set(new LUARadio(), "radio");
+		py.set(Math.class, "math");
 	}
 
 	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
@@ -178,6 +186,25 @@ public class Drone extends MobEntity {
 		forwardInput = forward;
 		yawInput = yaw;
 		upInput = up;
+	}
+
+	public void loadPythonScript(String code){
+		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+		NbtCompound root = comp.copyNbt();
+
+		root.put("code", NbtString.of(code));
+		this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+
+		try {
+			py.run(code.replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"));
+			py.runSetup();
+			pythonLoaded = true;
+		} catch (ExecutionException | InterruptedException e) {
+			root.put("code", NbtString.of(""));
+			this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+			e.printStackTrace();
+			pythonLoaded = false;
+		}
 	}
 
 	@Override
@@ -223,6 +250,7 @@ public class Drone extends MobEntity {
 			Vec3d velocity = this.getVelocity();
 			super.tick();
 			this.setVelocity(velocity);
+			runPython();
 			controllerMovementInput(0,0, 0,0);
 			physics();
 
@@ -264,10 +292,6 @@ public class Drone extends MobEntity {
 			super.tick();
 
 			Vec3d velocity = this.getVelocity();
-
-
-
-
 
 			this.prevYaw = yaw;
 			this.prevPitch = this.pitch;
@@ -318,6 +342,7 @@ public class Drone extends MobEntity {
 	}
 
 
+
 	public byte[] renderCameraToBytes() {
 		try {
 			int width = 128;
@@ -366,6 +391,24 @@ public class Drone extends MobEntity {
 		this.rollRate = rollRate;
 	}
 
+	private void runPython(){
+		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+		NbtCompound root = comp.copyNbt();
+		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n");
+
+		if (!loadedCode.isEmpty()){
+			try {
+				py.run(loadedCode);
+				py.runTick();
+			} catch (ExecutionException | InterruptedException e) {
+
+				root.put("code", NbtString.of(""));
+				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+				e.printStackTrace();
+			}
+		}
+	}
+
 	private void physics(){
 		Vec3d velocity = this.getVelocity();
 		double speed = velocity.length();
@@ -390,6 +433,8 @@ public class Drone extends MobEntity {
 		this.setHeadYaw((float) (this.getHeadYaw() + this.yawRate));
 		this.pitch += this.pitchRate;
 		this.roll  += this.rollRate;
+
+
 	}
 
 	public double getRoll() {

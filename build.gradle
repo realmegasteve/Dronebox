@@ -10,6 +10,7 @@ version = "$modVersion+$branchName"
 archivesBaseName = project.slug
 
 repositories {
+	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -18,9 +19,17 @@ dependencies {
 
 	modImplementation libs.fl
 	modImplementation libs.fapi
+
 	modImplementation 'org.python:jython-standalone:2.7.3'
 	include 'org.python:jython-standalone:2.7.3'
+
+	modImplementation 'com.github.krka:kahlua2:64ff71a8b2'
+	include 'com.github.krka:kahlua2:64ff71a8b2'
+
+	modImplementation 'org.luaj:luaj-jse:3.0.1'
+	include 'org.luaj:luaj-jse:3.0.1'
 }
+
 
 processResources {
 	final Map<String, String> meta = [
