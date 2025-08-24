@@ -1,10 +1,10 @@
 package net.Neomoon.dronebox;
 
-import net.Neomoon.dronebox.python.CustomRegexMarkersPython;
-import net.Neomoon.dronebox.python.MinecraftPythonInterpreter;
-import net.Neomoon.dronebox.python.PythonObjects.PYController;
-import net.Neomoon.dronebox.python.PythonObjects.PYDrone;
-import net.Neomoon.dronebox.python.PythonObjects.PYRadio;
+import net.Neomoon.dronebox.LUA.CustomRegexMarkersLUA;
+import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
+import net.Neomoon.dronebox.LUA.LUAObjects.LUAController;
+import net.Neomoon.dronebox.LUA.LUAObjects.LUADrone;
+import net.Neomoon.dronebox.LUA.LUAObjects.LUARadio;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
@@ -35,7 +35,6 @@ public class Drone extends MobEntity {
 	public double pitchRate;
 	public double rollRate;
 	private double roll;
-	private double getterYaw;
 	private double pitch;
 	private boolean pythonLoaded = false;
 
@@ -54,7 +53,7 @@ public class Drone extends MobEntity {
 		DataTracker.registerData(Drone.class, TrackedDataHandlerRegistry.INTEGER);
 
 
-	final MinecraftPythonInterpreter py = new MinecraftPythonInterpreter();
+	final MinecraftLuaInterpreter py = new MinecraftLuaInterpreter();
 
 
 	public static DefaultAttributeContainer.Builder createDroneAttributes() {
@@ -68,9 +67,10 @@ public class Drone extends MobEntity {
 	public Drone(EntityType<? extends Drone> type, World world) {
 		super(type, world);
 		this.setNoGravity(true);
-		py.set(new PYDrone(this), "drone");
-		py.set(new PYController(this), "controller");
-		py.set(PYRadio.class, "radio");
+		py.set(new LUADrone(this), "drone");
+		py.set(new LUAController(this), "controller");
+		py.set(new LUARadio(), "radio");
+		py.set(Math.class, "math");
 	}
 
 	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
@@ -88,7 +88,7 @@ public class Drone extends MobEntity {
 		this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
 
 		try {
-			py.run(code.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n"));
+			py.run(code.replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"));
 			py.runSetup();
 			pythonLoaded = true;
 		} catch (ExecutionException | InterruptedException e) {
@@ -254,7 +254,7 @@ public class Drone extends MobEntity {
 	private void runPython(){
 		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
-		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n");
+		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n");
 
 		if (!loadedCode.isEmpty()){
 			try {

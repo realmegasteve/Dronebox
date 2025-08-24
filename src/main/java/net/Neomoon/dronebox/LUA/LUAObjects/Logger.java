@@ -1,4 +1,4 @@
-package net.Neomoon.dronebox.python.PythonObjects;
+package net.Neomoon.dronebox.LUA.LUAObjects;
 
 public class Logger {
 	public void print(String t){

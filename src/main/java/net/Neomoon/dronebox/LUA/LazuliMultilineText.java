@@ -1,13 +1,11 @@
-package net.Neomoon.dronebox.python;
+package net.Neomoon.dronebox.LUA;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.font.MultilineText;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.screen.ScreenTexts;
@@ -18,10 +16,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Language;
 import net.minecraft.util.math.MathHelper;
-import org.python.antlr.ast.Str;
 import org.python.jline.internal.Nullable;
-
-import javax.swing.text.html.StyleSheet;
 
 @Environment(EnvType.CLIENT)
 public interface LazuliMultilineText {
@@ -150,16 +145,16 @@ public interface LazuliMultilineText {
 
 					//Shennanigans to keep cursor pos
 					String preCursor = plain.substring(0, Math.max(Math.min(cursor, plain.length() - 1), 0));
-					preCursor = preCursor.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), " ┃ ");
+					preCursor = preCursor.replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), " ┃ ");
 					cursor = preCursor.length();
 
-					plain = plain.replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), " ┃ ");
+					plain = plain.replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), " ┃ ");
 
 
 
 
 
-					String[] parts = plain.split(Pattern.quote(CustomRegexMarkersPython.returnMarker));
+					String[] parts = plain.split(Pattern.quote(CustomRegexMarkersLUA.returnMarker));
 
 					for (String thisString : parts) {
 						//draw the text itself

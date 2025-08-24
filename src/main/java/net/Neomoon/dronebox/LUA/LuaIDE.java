@@ -1,4 +1,4 @@
-package net.Neomoon.dronebox.python;
+package net.Neomoon.dronebox.LUA;
 
 import net.Neomoon.dronebox.Drone;
 import net.minecraft.client.MinecraftClient;
@@ -12,7 +12,6 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
@@ -20,12 +19,11 @@ import net.minecraft.util.Colors;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("removal")
-public class PythonIDE extends Screen {
+public class LuaIDE extends Screen {
 
 	private final ItemStack pendrive;
-	private final Drone drone;
-	private MinecraftPythonInterpreter python;
+	private MinecraftLuaInterpreter lua;
+	private Drone drone;
 
 	private String presetPythonCode = """
         import math
@@ -51,7 +49,7 @@ public class PythonIDE extends Screen {
 
 	// Widgets
 	private ButtonWidget renameOkButton;
-	private PythonTextFieldWidget codeInput;
+	private LuaTextFieldWidget codeInput;
 	private TextFieldWidget renameBox;
 	private ButtonWidget simulateCodeButton;
 	private ButtonWidget saveCodeButton;
@@ -62,11 +60,11 @@ public class PythonIDE extends Screen {
 
 	private String lastText;
 
-	public PythonIDE(Text title, ItemStack pendrive, Drone drone) {
+	public LuaIDE(Text title, ItemStack pendrive, Drone drone) {
 		super(title);
 		this.pendrive = pendrive;
+		this.lua = new MinecraftLuaInterpreter().init();
 		this.drone = drone;
-		this.python = new MinecraftPythonInterpreter().init(drone);
 	}
 
 	public void setPythonOutputText(String s) {
@@ -78,17 +76,17 @@ public class PythonIDE extends Screen {
 		// Load code from pendrive
 		NbtComponent comp = pendrive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
-		String loadedCode = root.getString("code", presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersPython.tabMarker)
-			.replaceAll(Pattern.quote("    "), CustomRegexMarkersPython.tabMarker)
-			.replaceAll(Pattern.quote("\n"), CustomRegexMarkersPython.returnMarker));
+		String loadedCode = root.getString("code", presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersLUA.tabMarker)
+			.replaceAll(Pattern.quote("    "), CustomRegexMarkersLUA.tabMarker)
+			.replaceAll(Pattern.quote("\n"), CustomRegexMarkersLUA.returnMarker));
 		if (loadedCode.isEmpty()) {
-			loadedCode = presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersPython.tabMarker)
-				.replaceAll(Pattern.quote("    "), CustomRegexMarkersPython.tabMarker)
-				.replaceAll(Pattern.quote("\n"), CustomRegexMarkersPython.returnMarker);
+			loadedCode = presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersLUA.tabMarker)
+				.replaceAll(Pattern.quote("    "), CustomRegexMarkersLUA.tabMarker)
+				.replaceAll(Pattern.quote("\n"), CustomRegexMarkersLUA.returnMarker);
 		}
 
 		// Code editor
-		codeInput = new PythonTextFieldWidget(this.textRenderer, 40, 70, 340, 200, Text.of("Python Code"));
+		codeInput = new LuaTextFieldWidget(this.textRenderer, 40, 70, 340, 200, Text.of("Python Code"));
 		codeInput.setMaxLength(Integer.MAX_VALUE);
 		codeInput.setText(loadedCode);
 
@@ -104,8 +102,8 @@ public class PythonIDE extends Screen {
 		// Action buttons
 		simulateCodeButton = ButtonWidget.builder(Text.of("Run Test"), (btn) -> {
 			try {
-				python.run(codeInput.getText().replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t")
-					.replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n"));
+				drone.loadPythonScript(codeInput.getText().replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t")
+					.replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"));
 			} catch (Exception e) {
 				setPythonOutputText(e.getMessage());
 			}
@@ -178,7 +176,7 @@ public class PythonIDE extends Screen {
 		} catch (RuntimeException ignored) {}
 
 		if (drawConsole) {
-			MultilineText console = MultilineText.create(MinecraftClient.getInstance().textRenderer, Text.of(python.console()));
+			MultilineText console = MultilineText.create(MinecraftClient.getInstance().textRenderer, Text.of(lua.console()));
 			console.drawWithShadow(context, 390, 70, 10, Colors.ALTERNATE_WHITE);
 		}
 	}

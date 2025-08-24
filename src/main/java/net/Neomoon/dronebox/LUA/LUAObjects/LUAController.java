@@ -1,11 +1,11 @@
-package net.Neomoon.dronebox.python.PythonObjects;
+package net.Neomoon.dronebox.LUA.LUAObjects;
 
 import net.Neomoon.dronebox.Drone;
 
-public class PYController {
+public class LUAController {
 	Drone drone;
 
-	public PYController(Drone inDrone) {
+	public LUAController(Drone inDrone) {
 		drone = inDrone;
 	}
 

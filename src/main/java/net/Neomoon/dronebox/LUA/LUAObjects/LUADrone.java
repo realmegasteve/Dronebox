@@ -1,14 +1,14 @@
-package net.Neomoon.dronebox.python.PythonObjects;
+package net.Neomoon.dronebox.LUA.LUAObjects;
 
 import net.Neomoon.dronebox.Drone;
 import net.minecraft.util.math.Vec3d;
 import org.python.core.PyFloat;
 import org.python.core.PyTuple;
 
-public class PYDrone {
+public class LUADrone {
 	Drone drone;
 
-	public PYDrone(Drone inDrone) {
+	public LUADrone(Drone inDrone) {
 		drone = inDrone;
 	}
 

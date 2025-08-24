@@ -1,4 +1,4 @@
-package net.Neomoon.dronebox.python;
+package net.Neomoon.dronebox.LUA;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.screen.narration.NarrationPart;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.sound.SoundManager;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Style;
@@ -36,7 +35,7 @@ import org.python.jline.internal.Nullable;
  * PythonTextFieldWidget — multiline + pixel-smooth scrolling + per-string coloring + improved cursor column handling
  */
 @Environment(EnvType.CLIENT)
-public class PythonTextFieldWidget extends ClickableWidget {
+public class LuaTextFieldWidget extends ClickableWidget {
 	private static final ButtonTextures TEXTURES = new ButtonTextures(Identifier.ofVanilla("widget/text_field"), Identifier.ofVanilla("widget/text_field_highlighted"));
 	private static final int VERTICAL_CURSOR_COLOR = -3092272;
 
@@ -117,15 +116,15 @@ public class PythonTextFieldWidget extends ClickableWidget {
 	private static final int COLOR_BUILTIN        = 0xFF4EC9B0;
 	private static final int SELECTION_COLOR      = 0x8855AAFF; 
 
-	public PythonTextFieldWidget(TextRenderer textRenderer, int width, int height, Text text) {
+	public LuaTextFieldWidget(TextRenderer textRenderer, int width, int height, Text text) {
 		this(textRenderer, 0, 0, width, height, null, text);
 	}
 
-	public PythonTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, Text text) {
-		this(textRenderer, x, y, width, height, (PythonTextFieldWidget) null, text);
+	public LuaTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, Text text) {
+		this(textRenderer, x, y, width, height, (LuaTextFieldWidget) null, text);
 	}
 
-	public PythonTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, @Nullable PythonTextFieldWidget copyFrom, Text text) {
+	public LuaTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, @Nullable LuaTextFieldWidget copyFrom, Text text) {
 		super(x, y, width, height, text);
 		this.text = "";
 		this.maxLength = 32;
@@ -201,7 +200,7 @@ public class PythonTextFieldWidget extends ClickableWidget {
 			String newText = (new StringBuilder(this.text)).replace(i, j, string).toString();
 			if (this.textPredicate.test(newText)) {
 				this.text = newText;
-				if (string.contains(CustomRegexMarkersPython.returnMarker)) {
+				if (string.contains(CustomRegexMarkersLUA.returnMarker)) {
 					this.desiredCursorX = 0;
 				}
 				this.buildLogicalMappings();
@@ -298,11 +297,11 @@ public class PythonTextFieldWidget extends ClickableWidget {
 		if (!this.isNarratable() || !this.isFocused()) return false;
 		switch (keyCode) {
 			case 258:
-				if (this.editable) this.write(CustomRegexMarkersPython.tabMarker);
+				if (this.editable) this.write(CustomRegexMarkersLUA.tabMarker);
 				return true;
 			case 257:
 				if (this.editable) {
-					this.write(CustomRegexMarkersPython.returnMarker);
+					this.write(CustomRegexMarkersLUA.returnMarker);
 					this.desiredCursorX = 0;
 					this.ensureCursorVisible();
 				}
@@ -340,10 +339,10 @@ public class PythonTextFieldWidget extends ClickableWidget {
 				return true;
 			default:
 				if (Screen.isSelectAll(keyCode)) { this.setCursorToEnd(false); this.setSelectionEnd(0); return true; }
-				if (Screen.isCopy(keyCode)) { MinecraftClient.getInstance().keyboard.setClipboard(this.getSelectedText().replaceAll(Pattern.quote(CustomRegexMarkersPython.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersPython.returnMarker), "\n")); return true; }
+				if (Screen.isCopy(keyCode)) { MinecraftClient.getInstance().keyboard.setClipboard(this.getSelectedText().replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n")); return true; }
 				if (Screen.isPaste(keyCode)) {
 					if (this.isEditable()) {
-						this.write(MinecraftClient.getInstance().keyboard.getClipboard().replaceAll(Pattern.quote("\t"), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote("    "), CustomRegexMarkersPython.tabMarker).replaceAll(Pattern.quote("\n"), CustomRegexMarkersPython.returnMarker));
+						this.write(MinecraftClient.getInstance().keyboard.getClipboard().replaceAll(Pattern.quote("\t"), CustomRegexMarkersLUA.tabMarker).replaceAll(Pattern.quote("    "), CustomRegexMarkersLUA.tabMarker).replaceAll(Pattern.quote("\n"), CustomRegexMarkersLUA.returnMarker));
 					}
 					return true;
 				}
@@ -767,8 +766,8 @@ public class PythonTextFieldWidget extends ClickableWidget {
 
 
 	private void buildLogicalMappings() {
-		String tab = CustomRegexMarkersPython.tabMarker;
-		String ret = CustomRegexMarkersPython.returnMarker;
+		String tab = CustomRegexMarkersLUA.tabMarker;
+		String ret = CustomRegexMarkersLUA.returnMarker;
 		int n = this.text.length();
 		this.origToLogical = new int[n + 1];
 		this.logicalToOrig = new ArrayList<>();

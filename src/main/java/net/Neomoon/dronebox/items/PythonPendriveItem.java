@@ -1,8 +1,7 @@
 package net.Neomoon.dronebox.items;
 
 import net.Neomoon.dronebox.Drone;
-import net.Neomoon.dronebox.python.MinecraftPythonInterpreter;
-import net.Neomoon.dronebox.python.PythonIDE;
+import net.Neomoon.dronebox.LUA.LuaIDE;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -21,15 +20,13 @@ public class PythonPendriveItem extends Item {
 	public PythonPendriveItem(Settings settings) {
 		super(settings);
 	}
+	private Drone linkedDrone = null;
 
 	@Override
 	public ActionResult use(World world, PlayerEntity player, Hand hand) {
 		if (player.isSneaking()) {
 			ItemStack stack = player.getStackInHand(hand);
-			Drone drone = getPlayerDrone(player); // implement this to get a drone reference
-			if (drone != null) {
-				MinecraftClient.getInstance().setScreen(new PythonIDE(Text.empty(), stack, drone));
-			}
+			MinecraftClient.getInstance().setScreen(new LuaIDE(Text.empty(), stack, linkedDrone));
 		}
 		return ActionResult.SUCCESS;
 	}
@@ -37,7 +34,13 @@ public class PythonPendriveItem extends Item {
 	@Override
 	public ActionResult useOnEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, Hand hand) {
 		if (entity instanceof Drone drone) {
-			writeCode(stack, drone);
+			if (player.isSneaking()) {
+				player.sendMessage(Text.literal("Pendrive linked to drone."), true);
+				linkedDrone = drone;
+			} else {
+				player.sendMessage(Text.literal("Code written to drone."), true);
+				writeCode(stack, drone);
+			}
 			return ActionResult.SUCCESS;
 		}
 		return ActionResult.PASS;
@@ -49,12 +52,5 @@ public class PythonPendriveItem extends Item {
 		NbtCompound root = comp.copyNbt();
 		String loadedCode = root.getString("code", "");
 		drone.loadPythonScript(loadedCode);
-	}
-
-	// Example method to get a drone from the player
-	private Drone getPlayerDrone(PlayerEntity player) {
-		// Return the first drone this player owns / holds
-		// Replace with your actual logic to get a Drone reference
-		return null;
 	}
 }
