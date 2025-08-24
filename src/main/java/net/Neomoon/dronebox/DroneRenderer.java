@@ -75,7 +75,7 @@ public class DroneRenderer extends MobEntityRenderer<
 
 	@Override
 	protected void setupTransforms(DroneRenderState state, MatrixStack matrices, float yaw, float tickDelta) {
-		double interpYaw   = state.entity.getHeadYaw();
+		double interpYaw   = -state.entity.getHeadYaw();
 		double interpPitch = lerpAngle(tickDelta, state.prevPitch, state.pitch);
 		double interpRoll  = lerpAngle(tickDelta, state.prevRoll, state.roll);
 
