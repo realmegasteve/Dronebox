@@ -1,6 +1,7 @@
 package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.LUA.CustomRegexMarkersLUA;
+import net.Neomoon.dronebox.LUA.LUAObjects.LUAMath;
 import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
 import net.Neomoon.dronebox.LUA.LUAObjects.LUAController;
 import net.Neomoon.dronebox.LUA.LUAObjects.LUADrone;
@@ -179,7 +180,7 @@ public class Drone extends MobEntity {
 		Lua.set(new LUADrone(this), "drone");
 		Lua.set(new LUAController(this), "controller");
 		Lua.set(new LUARadio(), "radio");
-		Lua.set(Math.class, "math");
+		Lua.set(new LUAMath(), "math");
 	}
 
 	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
@@ -399,7 +400,6 @@ public class Drone extends MobEntity {
 
 		if (!loadedCode.isEmpty()){
 			try {
-				Lua.run(loadedCode);
 				Lua.runTick();
 			} catch (ExecutionException | InterruptedException e) {
 
