@@ -1,20 +1,18 @@
 package net.Neomoon.dronebox.LUA.LUAObjects;
 
 import net.Neomoon.dronebox.Radio;
-import org.luaj.vm2.LuaDouble;
-import org.luaj.vm2.LuaString;
 
 public class LUARadio {
-	 public void sendSignal(LuaString channel, LuaDouble value){
-		Radio.sendSignal(channel.tojstring(), value.todouble());
+	 public void sendSignal(String channel, double value){
+		Radio.sendSignal(channel, value);
 	}
-	 public double readOrDefault(LuaString channel, LuaDouble value){
-		return Radio.readOrDefault(channel.tojstring(), value.todouble());
+	 public double readOrDefault(String channel, double value){
+		return Radio.readOrDefault(channel, value);
 	}
-	 public double read(LuaString channel){
-		return Radio.read(channel.tojstring());
+	 public double read(String channel){
+		return Radio.read(channel);
 	}
-	 public boolean signalExist(LuaString channel){
-		return Radio.signalExist(channel.tojstring());
+	 public boolean signalExist(String channel){
+		return Radio.signalExist(channel);
 	}
 }

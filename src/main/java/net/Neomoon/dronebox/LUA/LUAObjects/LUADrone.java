@@ -8,13 +8,21 @@ import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 public class LUADrone {
 	Drone drone;
-
+	public double max = 0.6;
 	public LUADrone(Drone inDrone) {
 		drone = inDrone;
 	}
 
 	public void accelerate(double X, double Y, double Z){
-		drone.setVelocity(drone.getVelocity().add(new Vec3d(X, Y, Z)));
+		drone.setVelocity(drone.getVelocity().add(new Vec3d(Math.min(Math.max(X, -max),max), Math.min(Math.max(Y, -max),max), Math.min(Math.max(Z, -max),max))));
+	}
+
+	public void setSpeed(double X, double Y, double Z){
+		drone.setVelocity(new Vec3d(X, Y, Z));
+	}
+
+	public void setAccessory(boolean state){
+		drone.setAcessory(state);
 	}
 
 	public void accelerateTurning(double yaw, double pitch, double roll){
@@ -22,37 +30,6 @@ public class LUADrone {
 		drone.rollRate += roll;
 		drone.pitchRate += pitch;
 	}
-
-	public void accelerateUpward(double acceleration) {
-		double yawRad = Math.toRadians(drone.getYaw());
-		double pitchRad = Math.toRadians(drone.getPitch());
-		double rollRad = Math.toRadians(drone.getRoll());
-
-		Vec3d localUp = new Vec3d(0, 1, 0);
-
-		double cosYaw = Math.cos(yawRad), sinYaw = Math.sin(yawRad);
-		double cosPitch = Math.cos(pitchRad), sinPitch = Math.sin(pitchRad);
-		double cosRoll = Math.cos(rollRad), sinRoll = Math.sin(rollRad);
-
-		double m00 = cosYaw * cosRoll + sinYaw * sinPitch * sinRoll;
-		double m01 = -cosYaw * sinRoll + sinYaw * sinPitch * cosRoll;
-		double m02 = sinYaw * cosPitch;
-
-		double m10 = cosPitch * sinRoll;
-		double m11 = cosPitch * cosRoll;
-		double m12 = -sinPitch;
-
-		double m20 = -sinYaw * cosRoll + cosYaw * sinPitch * sinRoll;
-		double m21 = sinRoll * sinYaw + cosYaw * sinPitch * cosRoll;
-		double m22 = cosYaw * cosPitch;
-
-		Vec3d worldUp = new Vec3d(m01, m11, m21);
-
-		worldUp = worldUp.multiply(acceleration);
-
-		drone.setVelocity(drone.getVelocity().add(worldUp));
-	}
-
 
 	//Position getters
 	public double getX(){ return drone.getX(); }

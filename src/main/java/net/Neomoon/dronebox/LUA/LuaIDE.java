@@ -1,6 +1,7 @@
 package net.Neomoon.dronebox.LUA;
 
 import net.Neomoon.dronebox.Drone;
+import net.minecraft.block.entity.VaultBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.MultilineText;
 import net.minecraft.client.gui.DrawContext;
@@ -103,7 +104,7 @@ public class LuaIDE extends Screen {
 		simulateCodeButton = ButtonWidget.builder(Text.of("Run Test"), (btn) -> {
 			try {
 				drone.loadPythonScript(codeInput.getText().replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t")
-					.replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"));
+					.replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"), MinecraftClient.getInstance().player);
 			} catch (Exception e) {
 				setPythonOutputText(e.getMessage());
 			}

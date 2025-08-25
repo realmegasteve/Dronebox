@@ -1,11 +1,10 @@
 package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.LUA.CustomRegexMarkersLUA;
-import net.Neomoon.dronebox.LUA.LUAObjects.LUAMath;
+import net.Neomoon.dronebox.LUA.LUAObjects.*;
 import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
-import net.Neomoon.dronebox.LUA.LUAObjects.LUAController;
-import net.Neomoon.dronebox.LUA.LUAObjects.LUADrone;
-import net.Neomoon.dronebox.LUA.LUAObjects.LUARadio;
+import net.Neomoon.dronebox.items.ModItems;
+import net.fabricmc.fabric.impl.particle.ExtendedBlockStateParticleEffectSync;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
@@ -22,6 +21,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.ReadView;
@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 
 public class Drone extends MobEntity {
 	public double yawRate;
+	public PlayerEntity pendriveOwner;
 	public double pitchRate;
 	public double rollRate;
 	private double roll;
@@ -55,6 +56,8 @@ public class Drone extends MobEntity {
 	public double yawInput = 0;
 	public double upInput = 0;
 
+	public boolean accessoryState;
+
 	public Vec3d remoteTarget;
 	public int remoteTime = 9999;
 
@@ -65,6 +68,10 @@ public class Drone extends MobEntity {
 
 	private static final ChunkTicketType DRONE_TICKET =
 		ChunkTicketType.PLAYER_SIMULATION;
+
+	public void setAcessory(boolean state) {
+		accessoryState = state;
+	}
 
 	// === Accessory System ===
 	public interface AccessoryApply {
@@ -190,7 +197,11 @@ public class Drone extends MobEntity {
 		upInput = up;
 	}
 
-	public void loadPythonScript(String code){
+	public void loadPythonScript(String code, PlayerEntity owner){
+		pendriveOwner = owner;
+		Lua.set(new LUALogger(pendriveOwner), "logger");
+
+
 		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
 
@@ -228,6 +239,23 @@ public class Drone extends MobEntity {
 					fn.tick(getWorld(), this.getUuid(), this);
 				}
 			}
+			if (accessoryState) {
+				if (acc == ModItems.TOPLIGHT_ACCESSORY) {
+					getWorld().addParticleClient(
+						ParticleTypes.END_ROD,
+						this.getX(), this.getY() + 0.1, this.getZ(),
+						0.0, 0.0, 0.0
+					);
+				}
+				if (acc == ModItems.SPOTLIGHT_ACCESSORY) {
+					getWorld().addParticleClient(
+						ParticleTypes.END_ROD,
+						this.getX(), this.getY() - 0.2, this.getZ(),
+						0.0, 0.0, 0.0
+					);
+				}
+			}
+
 		}
 
 		if (!this.getWorld().isClient() && this.getWorld() instanceof ServerWorld serverWorld) {
@@ -414,7 +442,7 @@ public class Drone extends MobEntity {
 		Vec3d velocity = this.getVelocity();
 		double speed = velocity.length();
 
-		double dragCoefficient = 0.03;
+		double dragCoefficient = 0.07;
 		double dragMagnitude = dragCoefficient * speed * speed;
 
 		Vec3d dragForce = velocity.normalize().multiply(-dragMagnitude);

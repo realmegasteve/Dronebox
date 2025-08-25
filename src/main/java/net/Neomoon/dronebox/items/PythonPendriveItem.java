@@ -39,18 +39,18 @@ public class PythonPendriveItem extends Item {
 				linkedDrone = drone;
 			} else {
 				player.sendMessage(Text.literal("Code written to drone."), true);
-				writeCode(stack, drone);
+				writeCode(stack, drone, player);
 			}
 			return ActionResult.SUCCESS;
 		}
 		return ActionResult.PASS;
 	}
 
-	private void writeCode(ItemStack drive, Drone drone) {
+	private void writeCode(ItemStack drive, Drone drone, PlayerEntity player) {
 		// Load code from the drive
 		NbtComponent comp = drive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
 		String loadedCode = root.getString("code", "");
-		drone.loadPythonScript(loadedCode);
+		drone.loadPythonScript(loadedCode, player);
 	}
 }
