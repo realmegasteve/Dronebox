@@ -1,6 +1,6 @@
 {
 	"model": {
 		"type": "minecraft:model",
-		"model": "dronebox:item/python_pendrive"
+		"model": "dronebox:item/lua_pendrive"
 	}
 }

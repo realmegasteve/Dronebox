@@ -1,6 +1,6 @@
 {
 	"parent": "minecraft:item/generated",
 	"textures": {
-		"layer0": "dronebox:item/python_pendrive"
+		"layer0": "dronebox:item/lua_pendrive"
 	}
 }

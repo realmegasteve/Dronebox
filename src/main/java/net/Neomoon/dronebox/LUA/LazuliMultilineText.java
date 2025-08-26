@@ -16,7 +16,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Language;
 import net.minecraft.util.math.MathHelper;
-import org.python.jline.internal.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @Environment(EnvType.CLIENT)
 public interface LazuliMultilineText {

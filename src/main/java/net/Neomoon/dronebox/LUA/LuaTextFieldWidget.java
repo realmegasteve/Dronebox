@@ -29,7 +29,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.StringHelper;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
-import org.python.jline.internal.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * PythonTextFieldWidget — multiline + pixel-smooth scrolling + per-string coloring + improved cursor column handling
