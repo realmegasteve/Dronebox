@@ -2,7 +2,7 @@
 	"item.dronebox.drone": "Drone",
 	"item.dronebox.controller": "Drone Controller",
 	"item.dronebox.remote": "Drone Remote",
-	"item.dronebox.python_pendrive": "Python Pendrive",
+	"item.dronebox.lua_pendrive": "Lua Pendrive",
 	"item.dronebox.googly": "Googly Eye",
 	"item.dronebox.spotlight": "Spotlight Accessory",
 	"item.dronebox.toplight": "Toplight Accessory",

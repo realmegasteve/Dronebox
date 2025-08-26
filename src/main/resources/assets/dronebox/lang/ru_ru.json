@@ -1,0 +1,11 @@
+{
+	"item.dronebox.drone": "Дрон",
+	"item.dronebox.controller": "Контроллер Дрона",
+	"item.dronebox.remote": "Пульт Дрона",
+	"item.dronebox.lua_pendrive": "Lua Флешка",
+	"item.dronebox.googly": "Подвижный Глазок",
+	"item.dronebox.spotlight": "Аксессуар Прожектор",
+	"item.dronebox.toplight": "Аксессуар Верхний Свет",
+
+	"itemGroup.dronebox.dronebox": "Dronebox"
+}

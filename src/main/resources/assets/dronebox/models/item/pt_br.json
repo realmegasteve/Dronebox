@@ -1,0 +1,11 @@
+{
+	"item.dronebox.drone": "Drone",
+	"item.dronebox.controller": "Controle",
+	"item.dronebox.remote": "Controle ponteiro de Drone",
+	"item.dronebox.lua_pendrive": "Pendrive de Lua",
+	"item.dronebox.googly": "Olhos esbugalhados",
+	"item.dronebox.spotlight": "Holofote drone",
+	"item.dronebox.toplight": "Luz de cabeça drone",
+
+	"itemGroup.dronebox.dronebox": "Dronebox"
+}

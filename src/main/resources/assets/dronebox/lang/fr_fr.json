@@ -1,0 +1,11 @@
+{
+	"item.dronebox.drone": "Drone",
+	"item.dronebox.controller": "Contrôleur de Drone",
+	"item.dronebox.remote": "Télécommande de Drone",
+	"item.dronebox.lua_pendrive": "Clé USB Lua",
+	"item.dronebox.googly": "Œil Mobile",
+	"item.dronebox.spotlight": "Accessoire Projecteur",
+	"item.dronebox.toplight": "Accessoire Éclairage Supérieur",
+
+	"itemGroup.dronebox.dronebox": "Dronebox"
+}

@@ -1,0 +1,11 @@
+{
+	"item.dronebox.drone": "Drohne",
+	"item.dronebox.controller": "Drohnen-Controller",
+	"item.dronebox.remote": "Drohnen-Fernbedienung",
+	"item.dronebox.lua_pendrive": "Lua USB-Stick",
+	"item.dronebox.googly": "Wackelauge",
+	"item.dronebox.spotlight": "Scheinwerfer-Zubehör",
+	"item.dronebox.toplight": "Oberlicht-Zubehör",
+
+	"itemGroup.dronebox.dronebox": "Dronebox"
+}

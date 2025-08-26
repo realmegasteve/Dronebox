@@ -1,0 +1,11 @@
+{
+	"item.dronebox.drone": "Dron",
+	"item.dronebox.controller": "Controlador de Dron",
+	"item.dronebox.remote": "Control Remoto de Dron",
+	"item.dronebox.lua_pendrive": "Pendrive Lua",
+	"item.dronebox.googly": "Ojo Saltón",
+	"item.dronebox.spotlight": "Accesorio Foco",
+	"item.dronebox.toplight": "Accesorio Luz Superior",
+
+	"itemGroup.dronebox.dronebox": "Dronebox"
+}
