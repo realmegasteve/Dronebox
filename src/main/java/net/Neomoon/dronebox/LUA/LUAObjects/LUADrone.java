@@ -7,8 +7,8 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 public class LUADrone {
-	Drone drone;
-	public double max = 0.6;
+	private final Drone drone;
+	private final double max = 0.6;
 	public LUADrone(Drone inDrone) {
 		drone = inDrone;
 	}
@@ -60,8 +60,8 @@ public class LUADrone {
 	public LuaTable getRotation() {
 		LuaTable table = LuaValue.tableOf();
 		table.set(1, CoerceJavaToLua.coerce(drone.getPitch()));
-		table.set(2, CoerceJavaToLua.coerce(drone.getPitch()));
-		table.set(3, CoerceJavaToLua.coerce(drone.getPitch()));
+		table.set(2, CoerceJavaToLua.coerce(drone.getYaw()));
+		table.set(3, CoerceJavaToLua.coerce(drone.getRoll()));
 		return table;
 	}
 	//Rotation Rate getters

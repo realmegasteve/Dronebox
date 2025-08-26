@@ -1,22 +1,38 @@
 package net.Neomoon.dronebox.LUA;
 
+import net.Neomoon.dronebox.LUA.LUAObjects.FilteredLUAObject;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import org.luaj.vm2.*;
+import org.luaj.vm2.lib.MathLib;
+import org.luaj.vm2.lib.StringLib;
+import org.luaj.vm2.lib.TableLib;
 import org.luaj.vm2.lib.ZeroArgFunction;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+import org.luaj.vm2.lib.jse.JseBaseLib;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.StringWriter;
 import java.util.concurrent.*;
 
 public class MinecraftLuaInterpreter {
-	private Globals globals = JsePlatform.standardGlobals();
+	private Globals globals;
 	private StringWriter outputBuffer = new StringWriter();
 	private final ExecutorService exec = Executors.newSingleThreadExecutor();
 
 	public MinecraftLuaInterpreter init() {
-		// Override print to write into our buffer
+		globals = new Globals();
+		globals.load(new JseBaseLib());
+		globals.load(new MathLib());
+		globals.load(new StringLib());
+		globals.load(new TableLib());
+
+		globals.set("loadfile", LuaValue.NIL);
+		globals.set("dofile", LuaValue.NIL);
+		globals.set("load", LuaValue.NIL);
+		globals.set("require", LuaValue.NIL);
+		globals.set("luajava", LuaValue.NIL);
+
 		globals.set("print", new ZeroArgFunction() {
 			@Override
 			public LuaValue call() {
@@ -33,20 +49,18 @@ public class MinecraftLuaInterpreter {
 				return NIL;
 			}
 		});
-
-		globals.set("MinecraftClient", CoerceJavaToLua.coerce(MinecraftClient.getInstance()));
 		return this;
 	}
 
 	public MinecraftLuaInterpreter set(Object o, String name) {
-		globals.set(name, CoerceJavaToLua.coerce(o));
+		LuaValue ob = CoerceJavaToLua.coerce(o);
+		if (ob instanceof LuaUserdata) {
+			globals.set(name, new FilteredLUAObject(ob));
+		}
 		return this;
 	}
 
-	public MinecraftLuaInterpreter set(LuaValue o, String name) {
-		globals.set(name, CoerceJavaToLua.coerce(o));
-		return this;
-	}
+
 
 	public void run(String code) throws ExecutionException, InterruptedException {
 		outputBuffer = new StringWriter();

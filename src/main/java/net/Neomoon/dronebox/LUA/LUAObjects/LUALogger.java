@@ -5,7 +5,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 
 public class LUALogger {
-	PlayerEntity target;
+	private final PlayerEntity target;
 	public LUALogger(PlayerEntity player) {
 		target = player;
 	}
