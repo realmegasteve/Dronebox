@@ -4,13 +4,9 @@ import net.Neomoon.dronebox.LUA.LUAObjects.FilteredLUAObject;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import org.luaj.vm2.*;
-import org.luaj.vm2.lib.MathLib;
-import org.luaj.vm2.lib.StringLib;
-import org.luaj.vm2.lib.TableLib;
-import org.luaj.vm2.lib.ZeroArgFunction;
-import org.luaj.vm2.lib.jse.CoerceJavaToLua;
-import org.luaj.vm2.lib.jse.JseBaseLib;
-import org.luaj.vm2.lib.jse.JsePlatform;
+import org.luaj.vm2.compiler.LuaC;
+import org.luaj.vm2.lib.*;
+import org.luaj.vm2.lib.jse.*;
 
 import java.io.StringWriter;
 import java.util.concurrent.*;
@@ -22,16 +18,31 @@ public class MinecraftLuaInterpreter {
 
 	public MinecraftLuaInterpreter init() {
 		globals = new Globals();
-		globals.load(new JseBaseLib());
-		globals.load(new MathLib());
-		globals.load(new StringLib());
-		globals.load(new TableLib());
 
-		globals.set("loadfile", LuaValue.NIL);
-		globals.set("dofile", LuaValue.NIL);
-		globals.set("load", LuaValue.NIL);
+		//essential libs
+		globals.load(new JseBaseLib());
+		globals.load(new PackageLib());
+		globals.load(new Bit32Lib());
+
+
+		globals.load(new TableLib());
+		globals.load(new StringLib());
+		globals.load(new JseMathLib());
+		LoadState.install(globals);
+		LuaC.install(globals);
+
 		globals.set("require", LuaValue.NIL);
-		globals.set("luajava", LuaValue.NIL);
+
+		LuaTable packageTable = (LuaTable) globals.get("package");
+		if (!packageTable.isnil()) {
+			LuaValue[] keys = packageTable.keys();
+			for (LuaValue key : keys) {
+				packageTable.set(key, LuaValue.NIL);
+			}
+		}
+
+		globals.set("package", LuaValue.NIL);
+
 
 		globals.set("print", new ZeroArgFunction() {
 			@Override
@@ -56,7 +67,9 @@ public class MinecraftLuaInterpreter {
 		LuaValue ob = CoerceJavaToLua.coerce(o);
 		if (ob instanceof LuaUserdata) {
 			globals.set(name, new FilteredLUAObject(ob));
+			return this;
 		}
+		globals.set(name, ob);
 		return this;
 	}
 

@@ -184,10 +184,15 @@ public class Drone extends MobEntity {
 	public Drone(EntityType<? extends Drone> type, World world) {
 		super(type, world);
 		this.setNoGravity(true);
+		Lua.init();
 		Lua.set(new LUADrone(this), "drone");
 		Lua.set(new LUAController(this), "controller");
 		Lua.set(new LUARadio(), "radio");
 		Lua.set(new LUAMath(), "math");
+		Lua.set(new LUADrone(this), "Drone");
+		Lua.set(new LUAController(this), "Controller");
+		Lua.set(new LUARadio(), "Radio");
+		Lua.set(new LUAMath(), "Math");
 	}
 
 	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
@@ -200,6 +205,7 @@ public class Drone extends MobEntity {
 	public void loadPythonScript(String code, PlayerEntity owner){
 		pendriveOwner = owner;
 		Lua.set(new LUALogger(pendriveOwner), "logger");
+		Lua.set(new LUALogger(pendriveOwner), "Logger");
 
 
 		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));

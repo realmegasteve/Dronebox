@@ -15,14 +15,6 @@ public class FilteredLUAObject extends LuaUserdata {
 		initializeForbiddenMethods();
 	}
 
-	public FilteredLUAObject(LuaValue original, List<String> additionalForbidden) {
-		super(((LuaUserdata) original).m_instance, ((LuaUserdata) original).m_metatable);
-		initializeForbiddenMethods();
-		if (additionalForbidden != null) {
-			additionalForbidden.forEach(method -> ForbiddenMethods.add(method.toLowerCase()));
-		}
-	}
-
 	private void initializeForbiddenMethods() {
 		ForbiddenMethods.add("getclass");
 		ForbiddenMethods.add("getclassloader");
@@ -173,6 +165,6 @@ public class FilteredLUAObject extends LuaUserdata {
 		if (ForbiddenMethods.contains(keyStr)) {
 			return LuaValue.NIL;
 		}
-		return super.get(key);
+		return m_metatable!=null? gettable(this,key): NIL;
 	}
 }
