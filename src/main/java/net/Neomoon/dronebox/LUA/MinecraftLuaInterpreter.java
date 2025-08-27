@@ -1,6 +1,5 @@
 package net.Neomoon.dronebox.LUA;
 
-import net.Neomoon.dronebox.LUA.LUAObjects.FilteredLUAObject;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import org.luaj.vm2.*;
@@ -42,6 +41,11 @@ public class MinecraftLuaInterpreter {
 		}
 
 		globals.set("package", LuaValue.NIL);
+		globals.set("dofile", LuaValue.NIL);
+		globals.set("loadfile", LuaValue.NIL);
+		globals.set("require", LuaValue.NIL);
+		globals.set("load", LuaValue.NIL);
+		globals.set("loadstring", LuaValue.NIL);
 
 
 		globals.set("print", new ZeroArgFunction() {
@@ -66,7 +70,7 @@ public class MinecraftLuaInterpreter {
 	public MinecraftLuaInterpreter set(Object o, String name) {
 		LuaValue ob = CoerceJavaToLua.coerce(o);
 		if (ob instanceof LuaUserdata) {
-			globals.set(name, new FilteredLUAObject(ob));
+			globals.set(name, ob);
 			return this;
 		}
 		globals.set(name, ob);
