@@ -83,38 +83,15 @@ public class LuaTextFieldWidget extends ClickableWidget {
 
 	private int desiredCursorX = -1;
 
-	private static final Pattern TOKEN_PATTERN = Pattern.compile(
-		"(\"\"\".*?\"\"\"|'''.*?''')" +
-			"|(\"(?:\\\\.|[^\"\\\\])*?\")" +
-			"|('(?:\\\\.|[^'\\\\])*?')" +
-			"|(#.*$)" +
-			"|(@\\w+)" +
-			"|\\b(?:and|as|assert|async|await|break|class|continue|" +
-			"def|del|elif|else|except|False|finally|for|from|" +
-			"global|if|import|in|is|lambda|None|nonlocal|not|" +
-			"or|pass|raise|return|True|try|while|with|yield)\\b" +
-			"|\\b(\\d+(?:\\.\\d+)?)\\b" +
-			"|\\b(abs|all|any|ascii|bin|bool|breakpoint|bytearray|bytes|callable|chr|" +
-			"classmethod|compile|complex|delattr|dict|dir|divmod|enumerate|eval|" +
-			"exec|filter|float|format|frozenset|getattr|globals|hasattr|hash|help|" +
-			"hex|id|input|int|isinstance|issubclass|iter|len|list|locals|map|max|" +
-			"memoryview|min|next|object|oct|open|ord|pow|print|property|range|" +
-			"repr|reversed|round|set|setattr|slice|sorted|staticmethod|str|sum|" +
-			"super|tuple|type|vars|zip)\\b",
-		Pattern.MULTILINE | Pattern.DOTALL
-	);
+	private static final Pattern TOKEN_PATTERN = LUADefaults.syntaxPattern;
 
 
-	private static final int COLOR_DEFAULT        = 0xFFD4D4D4;
-	private static final int COLOR_KEYWORD        = 0xFF569CD6;
-	private static final int COLOR_STRING_TRIPLE  = 0xFFD69D85;
-	private static final int COLOR_STRING_DOUBLE  = 0xFFE0A890;
-	private static final int COLOR_STRING_SINGLE  = 0xFFC98A73;
-	private static final int COLOR_COMMENT        = 0xFF2E2E2E;
-	private static final int COLOR_NUMBER         = 0xFFB5CEA8;
-	private static final int COLOR_DECORATOR      = 0xFFDCDCAA;
-	private static final int COLOR_BUILTIN        = 0xFF4EC9B0;
-	private static final int SELECTION_COLOR      = 0x8855AAFF; 
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		firstVisibleScrollY -= (int) (verticalAmount * 20);
+		firstVisibleScrollY = Math.max(0, firstVisibleScrollY);
+		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+	}
 
 	public LuaTextFieldWidget(TextRenderer textRenderer, int width, int height, Text text) {
 		this(textRenderer, 0, 0, width, height, null, text);
@@ -494,7 +471,7 @@ public class LuaTextFieldWidget extends ClickableWidget {
 				int endOffset = selEnd - segStart;
 				int xStart = this.textX + getTextWidth(seg.content.substring(0, Math.max(0, Math.min(startOffset, seg.content.length()))));
 				int xEnd = this.textX + getTextWidth(seg.content.substring(0, Math.max(0, Math.min(endOffset, seg.content.length()))));
-				context.fill(xStart, y - 1, xEnd, y + this.lineHeight - 1, SELECTION_COLOR);
+				context.fill(xStart, y - 1, xEnd, y + this.lineHeight - 1, LUADefaults.SELECTION_COLOR);
 			}
 
 			//Draw cursor
@@ -644,13 +621,13 @@ public class LuaTextFieldWidget extends ClickableWidget {
 					int to = overlapEnd - last;
 					int xOffset = drawX + getTextWidth(plain.substring(0, from));
 					String slice = plain.substring(from, to);
-					context.drawTextWithShadow(this.textRenderer, OrderedText.styledForwardsVisitedString(slice, Style.EMPTY), xOffset, baseY, COLOR_DEFAULT);
+					context.drawTextWithShadow(this.textRenderer, OrderedText.styledForwardsVisitedString(slice, Style.EMPTY), xOffset, baseY, LUADefaults.COLOR_DEFAULT);
 				}
 				drawX += getTextWidth(plain);
 			}
 
 			String token = fullLine.substring(m.start(), m.end());
-			int color = pickColorForMatch(m, token);
+			int color = LUADefaults.pickColorForMatch(m, token);
 			int overlapStartToken = Math.max(m.start(), segLocalStart);
 			int overlapEndToken = Math.min(m.end(), segLocalEnd);
 			if (overlapStartToken < overlapEndToken) {
@@ -671,25 +648,12 @@ public class LuaTextFieldWidget extends ClickableWidget {
 				int from = overlapStart - last;
 				int xOffset = drawX + getTextWidth(trailing.substring(0, from));
 				String slice = trailing.substring(from, overlapEnd - last);
-				context.drawTextWithShadow(this.textRenderer, OrderedText.styledForwardsVisitedString(slice , Style.EMPTY), xOffset, baseY, COLOR_DEFAULT);
+				context.drawTextWithShadow(this.textRenderer, OrderedText.styledForwardsVisitedString(slice , Style.EMPTY), xOffset, baseY, LUADefaults.COLOR_DEFAULT);
 			}
 		}
 	}
 
-	private int pickColorForMatch(Matcher m, String token) {
-		java.util.function.Predicate<Integer> matched = i ->
-			i <= m.groupCount() && m.start(i) != -1;
 
-		if (matched.test(1) || matched.test(2)) return COLOR_STRING_TRIPLE;
-		if (matched.test(3)) return COLOR_STRING_DOUBLE;
-		if (matched.test(4)) return COLOR_STRING_SINGLE;
-		if (matched.test(5)) return COLOR_COMMENT;
-		if (matched.test(6)) return COLOR_DECORATOR;
-		if (matched.test(7)) return COLOR_KEYWORD;
-		if (matched.test(8)) return COLOR_NUMBER;
-		if (matched.test(9)) return COLOR_BUILTIN;
-		return COLOR_DEFAULT;
-	}
 
 	private void updateTextPosition() {
 		if (this.textRenderer != null) {

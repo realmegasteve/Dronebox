@@ -1,6 +1,7 @@
 package net.Neomoon.dronebox.items;
 
 import net.Neomoon.dronebox.Drone;
+import net.Neomoon.dronebox.LUA.LUADefaults;
 import net.Neomoon.dronebox.LUA.LuaIDE;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.DataComponentTypes;
@@ -15,9 +16,9 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
-public class PythonPendriveItem extends Item {
+public class LuaPendriveItem extends Item {
 
-	public PythonPendriveItem(Settings settings) {
+	public LuaPendriveItem(Settings settings) {
 		super(settings);
 	}
 	private Drone linkedDrone = null;
@@ -50,7 +51,7 @@ public class PythonPendriveItem extends Item {
 		// Load code from the drive
 		NbtComponent comp = drive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
-		String loadedCode = root.getString("code", "");
+		String loadedCode = root.getString("code", LUADefaults.presetPythonCode);
 		drone.loadPythonScript(loadedCode, player);
 	}
 }

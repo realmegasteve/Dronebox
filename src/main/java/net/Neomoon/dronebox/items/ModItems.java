@@ -27,7 +27,7 @@ public class ModItems {
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID, "remote")))));
 
 	public static final Item LUA_PENDRIVE = registerItem("lua_pendrive",
-		new PythonPendriveItem(new Item.Settings().maxCount(1)
+		new LuaPendriveItem(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"lua_pendrive")))));
 
 	public static final Item EYE_ACCESSORY = registerItem("googly",
@@ -41,6 +41,7 @@ public class ModItems {
 	public static final Item TOPLIGHT_ACCESSORY = registerItem("toplight",
 		new Item(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"toplight")))));
+
 
 
 	public static final RegistryKey<ItemGroup> DRONEBOX_GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP,

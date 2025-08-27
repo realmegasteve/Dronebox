@@ -26,27 +26,14 @@ public class LuaIDE extends Screen {
 	private MinecraftLuaInterpreter lua;
 	private Drone drone;
 
-	private String presetPythonCode = """
-        import math
 
-        # Called once when the script starts
-        def setup():
-            global counter
-            counter = 0
-
-        # Called every game tick
-        def tick():
-            global counter
-            counter = counter + 1
-            time = counter / 20
-            drone.setVelocity(math.sin(time) * 0.1, 0, math.cos(time) * 0.1)
-        """;
 
 	private String output = "*Empty*";
 	private MultilineTextWidget codeOutputLog;
 	private boolean closeFr = false;
 	private boolean drawConsole = true;
 	private boolean saved = true;
+	private boolean subScreenOpen = false;
 
 	// Widgets
 	private ButtonWidget renameOkButton;
@@ -58,6 +45,16 @@ public class LuaIDE extends Screen {
 	private ButtonWidget saveAndCloseButton;
 	private ButtonWidget closeAndNotSaveButton;
 	private ButtonWidget cancelButton;
+	private ButtonWidget helpButton;
+	private MultilineTextWidget help;
+	private ButtonWidget closeHelpButton;
+
+
+
+
+
+
+
 
 	private String lastText;
 
@@ -77,17 +74,17 @@ public class LuaIDE extends Screen {
 		// Load code from pendrive
 		NbtComponent comp = pendrive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
-		String loadedCode = root.getString("code", presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersLUA.tabMarker)
+		String loadedCode = root.getString("code", LUADefaults.presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersLUA.tabMarker)
 			.replaceAll(Pattern.quote("    "), CustomRegexMarkersLUA.tabMarker)
 			.replaceAll(Pattern.quote("\n"), CustomRegexMarkersLUA.returnMarker));
 		if (loadedCode.isEmpty()) {
-			loadedCode = presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersLUA.tabMarker)
+			loadedCode = LUADefaults.presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersLUA.tabMarker)
 				.replaceAll(Pattern.quote("    "), CustomRegexMarkersLUA.tabMarker)
 				.replaceAll(Pattern.quote("\n"), CustomRegexMarkersLUA.returnMarker);
 		}
 
 		// Code editor
-		codeInput = new LuaTextFieldWidget(this.textRenderer, 40, 70, 340, 200, Text.of("Python Code"));
+		codeInput = new LuaTextFieldWidget(this.textRenderer, 40, 70, 500, 200, Text.of("Python Code"));
 		codeInput.setMaxLength(Integer.MAX_VALUE);
 		codeInput.setText(loadedCode);
 
@@ -124,8 +121,22 @@ public class LuaIDE extends Screen {
 			saveCodeButton.visible = false;
 			simulateCodeButton.visible = false;
 			drawConsole = false;
+			subScreenOpen = true;
+			closeHelpButton.visible = true;
 		}).dimensions(200, 40, 70, 20).build();
 
+		helpButton = ButtonWidget.builder(Text.of("Help"), (btn) -> {
+			openHelpDialog();
+		}).dimensions(280, 40, 40, 20).build();
+
+		closeHelpButton = ButtonWidget.builder(Text.of("X"), (btn) -> {
+			resetVisibility();
+		}).dimensions(40, 40, 20, 20).build();
+
+		help = new MultilineTextWidget(80, 60, LUADefaults.guide, textRenderer);
+		help.visible = false;
+
+		closeHelpButton.visible = false;
 		// Confirm close dialog
 		saveAndCloseButton = ButtonWidget.builder(Text.of("Save code and close"), (btn) -> {
 			saveCode(pendrive, codeInput.getText());
@@ -157,6 +168,9 @@ public class LuaIDE extends Screen {
 		addDrawableChild(closeAndNotSaveButton);
 		addDrawableChild(saveAndCloseButton);
 		addDrawableChild(cancelButton);
+		addDrawableChild(help);
+		addDrawableChild(closeHelpButton);
+		addDrawableChild(helpButton);
 
 		lastText = codeInput.getText();
 	}
@@ -164,6 +178,8 @@ public class LuaIDE extends Screen {
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
+
+		codeInput.setWidth(context.getScaledWindowWidth() - 40);
 
 		if (!Objects.equals(lastText, codeInput.getText())) {
 			lastText = codeInput.getText();
@@ -180,6 +196,13 @@ public class LuaIDE extends Screen {
 			MultilineText console = MultilineText.create(MinecraftClient.getInstance().textRenderer, Text.of(lua.console()));
 			console.drawWithShadow(context, 390, 70, 10, Colors.ALTERNATE_WHITE);
 		}
+
+		try {
+			help.setY((int) Math.round(mouseY * -0.1) + 40);
+		} catch (Exception e) {
+
+		}
+
 	}
 
 	private void saveCode(ItemStack drive, String code) {
@@ -198,9 +221,14 @@ public class LuaIDE extends Screen {
 		saveCodeButton.visible = true;
 		simulateCodeButton.visible = true;
 		renameOkButton.visible = false;
+		helpButton.visible = true;
 		renameBox.setVisible(false);
 		cancelButton.visible = false;
 		drawConsole = true;
+		help.visible = false;
+		closeHelpButton.visible = false;
+		subScreenOpen = false;
+		closeHelpButton.visible = false;
 	}
 
 	private void openCloseDialog() {
@@ -216,15 +244,40 @@ public class LuaIDE extends Screen {
 		drawConsole = false;
 	}
 
+	private void openHelpDialog() {
+		saveAndCloseButton.visible = false;
+		closeAndNotSaveButton.visible = false;
+		codeInput.setVisible(false);
+		renameButton.visible = false;
+		saveCodeButton.visible = false;
+		simulateCodeButton.visible = false;
+		renameOkButton.visible = false;
+		renameBox.setVisible(false);
+		cancelButton.visible = false;
+		help.visible = true;
+		drawConsole = false;
+		help.visible = true;
+		helpButton.visible = false;
+		subScreenOpen = true;
+		closeHelpButton.visible = true;
+	}
+
+
+
 	@Override
 	public void close() {
-		if (closeFr || saved) {
-			MinecraftClient mc = MinecraftClient.getInstance();
-			if (mc != null) {
-				mc.execute(() -> mc.setScreen(null));
+		if (subScreenOpen) {
+			resetVisibility();
+			subScreenOpen = false;
+		} else {
+			if (closeFr || saved) {
+				MinecraftClient mc = MinecraftClient.getInstance();
+				if (mc != null) {
+					mc.execute(() -> mc.setScreen(null));
+				}
 			}
+			openCloseDialog();
+			closeFr = true;
 		}
-		openCloseDialog();
-		closeFr = true;
 	}
 }
