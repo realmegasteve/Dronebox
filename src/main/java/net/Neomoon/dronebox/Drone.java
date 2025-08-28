@@ -4,7 +4,12 @@ import net.Neomoon.dronebox.LUA.CustomRegexMarkersLUA;
 import net.Neomoon.dronebox.LUA.LUAObjects.*;
 import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
 import net.Neomoon.dronebox.items.ModItems;
+import net.Neomoon.dronebox.network.DroneStatePayload;
+import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
+import net.Neomoon.dronebox.network.MoveC2SPayload;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.impl.particle.ExtendedBlockStateParticleEffectSync;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
@@ -49,12 +54,14 @@ public class Drone extends MobEntity {
 	private boolean pythonLoaded = false;
 
 	public double prevRoll;
+	public boolean owner = false;
 	public double prevYaw;
 	public double prevPitch;
 	public double strafeInput = 0;
 	public double forwardInput = 0;
 	public double yawInput = 0;
 	public double upInput = 0;
+	public DroneStatePayload payload;
 
 	public boolean accessoryState;
 
@@ -213,16 +220,17 @@ public class Drone extends MobEntity {
 
 		root.put("code", NbtString.of(code));
 		this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
-
-		try {
-			Lua.run(code.replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"));
-			Lua.runSetup();
-			pythonLoaded = true;
-		} catch (ExecutionException | InterruptedException e) {
-			root.put("code", NbtString.of(""));
-			this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
-			e.printStackTrace();
-			pythonLoaded = false;
+		if (getWorld().isClient) {
+			try {
+				Lua.run(code.replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n"));
+				Lua.runSetup();
+				pythonLoaded = true;
+			} catch (ExecutionException | InterruptedException e) {
+				root.put("code", NbtString.of(""));
+				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+				e.printStackTrace();
+				pythonLoaded = false;
+			}
 		}
 	}
 
@@ -282,13 +290,20 @@ public class Drone extends MobEntity {
 
 		double yaw = this.getHeadYaw();
 		if (pythonLoaded) {
+			if (getWorld().isClient && pendriveOwner.equals(MinecraftClient.getInstance().player)) {
+				Vec3d velocity = this.getVelocity();
+				super.tick();
+				this.setVelocity(velocity);
+				runPython();
+				controllerMovementInput(0, 0, 0, 0);
+				physics();
 
-			Vec3d velocity = this.getVelocity();
-			super.tick();
-			this.setVelocity(velocity);
-			runPython();
-			controllerMovementInput(0,0, 0,0);
-			physics();
+				DroneStatePayload p = new DroneStatePayload(uuid.toString(), getX(), getY(), getZ(), getVelocity().x, getVelocity().y, getVelocity().z, accessoryState);
+				DroneStatePayloadBatchesDispatcher.queuePayload(p);
+
+			} else {
+
+			}
 
 		} else {
 			//Controller logic
@@ -366,6 +381,12 @@ public class Drone extends MobEntity {
 			this.pitch += (targetPitch - this.pitch) * tiltSmooth;
 			this.roll += (targetRoll - this.roll) * tiltSmooth;
 		}
+		if (payload != null){
+			setPos(payload.X(), payload.Y(), payload.Z());
+			setVelocity(payload.XS(), payload.YS(), payload.ZS());
+			accessoryState = payload.accessoryState();
+			payload = null;
+		}
 	}
 
 	@Override
@@ -428,18 +449,20 @@ public class Drone extends MobEntity {
 	}
 
 	private void runPython(){
-		NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n");
+		if (getWorld().isClient) {
+			NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+			NbtCompound root = comp.copyNbt();
+			String loadedCode = root.getString("code", "").replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t").replaceAll(Pattern.quote(CustomRegexMarkersLUA.returnMarker), "\n");
 
-		if (!loadedCode.isEmpty()){
-			try {
-				Lua.runTick();
-			} catch (ExecutionException | InterruptedException e) {
+			if (!loadedCode.isEmpty()) {
+				try {
+					Lua.runTick();
+				} catch (ExecutionException | InterruptedException e) {
 
-				root.put("code", NbtString.of(""));
-				this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
-				e.printStackTrace();
+					root.put("code", NbtString.of(""));
+					this.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+					e.printStackTrace();
+				}
 			}
 		}
 	}

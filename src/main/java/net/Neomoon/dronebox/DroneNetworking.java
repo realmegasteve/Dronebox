@@ -29,6 +29,18 @@ public static void registerclient(){
 		PayloadTypeRegistry.playC2S().register(RequestCameraPayload.ID, RequestCameraPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(CameraFramePayload.ID, CameraFramePayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ViewTogglePayload.ID, ViewTogglePayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(DroneStatePayload.ID, DroneStatePayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(DroneBatchPayload.ID, DroneBatchPayload.CODEC);
+
+
+		ServerPlayNetworking.registerGlobalReceiver(DroneBatchPayload.ID, (payload, context) -> {
+			ServerPlayerEntity player = context.player();
+			context.server().execute(() -> {
+				for (DroneStatePayload droneState : payload.droneStates()) {
+					context.server().execute(() -> handleDroneStatePayload(player, droneState));
+				}
+			});
+		});
 
 
 
@@ -50,7 +62,6 @@ public static void registerclient(){
 			ServerPlayerEntity player = context.player();
 			context.server().execute(() -> handleViewtogglePayload(player, payload));
 		});
-
 	}
 
 	private static void handleMovePayload(ServerPlayerEntity player, MoveC2SPayload payload) {
@@ -60,6 +71,13 @@ public static void registerclient(){
 			double strafe = payload.strafe();
 			double up = (payload.up()? 1 : 0) + (payload.down()? -1 : 0);
 			drone.controllerMovementInput(forward, strafe, up, payload.yawInput());
+		}
+	}
+
+	private static void handleDroneStatePayload(ServerPlayerEntity player, DroneStatePayload payload) {
+		Entity e = findEntityByUUID(player, UUID.fromString(payload.drone()));
+		if (e instanceof Drone drone) {
+			drone.payload = payload;
 		}
 	}
 

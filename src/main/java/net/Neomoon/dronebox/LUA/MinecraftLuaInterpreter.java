@@ -110,7 +110,7 @@ public class MinecraftLuaInterpreter {
 			}
 			return;
 		}
-		Future<?> f = exec.submit(() -> func.call());  // <-- FIXED
+		Future<?> f = exec.submit(() -> func.call());
 		try {
 			f.get(3, TimeUnit.SECONDS);
 		} catch (TimeoutException e) {

@@ -4,6 +4,8 @@ import net.Neomoon.dronebox.gui.DroneHUD;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.items.ModItems;
+import net.Neomoon.dronebox.network.DroneBatchPayload;
+import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
 import net.Neomoon.dronebox.network.RequestCameraPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -29,6 +31,7 @@ public class CentralDroneClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		DroneStatePayloadBatchesDispatcher.initialize();
 		DroneNetworking.registerclient();
 		DroneModelLayers.init();
 
