@@ -1,5 +1,6 @@
 package net.Neomoon.dronebox.gui;
 
+import net.Neomoon.dronebox.CameraManager;
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.network.ViewTogglePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -24,6 +25,10 @@ public class DroneControlScreen extends Screen {
 	public DroneControlScreen(ItemStack controller) {
 		super(Text.literal("Drone Control"));
 		this.controllerStack = controller;
+	}
+
+	public DroneControlScreen newScren(ItemStack stack){
+		return new DroneControlScreen(stack);
 	}
 
 	@Override
@@ -121,7 +126,8 @@ public class DroneControlScreen extends Screen {
 			ButtonWidget extraBtn = ButtonWidget.builder(
 				Text.literal("View"),
 				btn -> {
-					ClientPlayNetworking.send(new ViewTogglePayload(droneUuid.toString()));
+					//ClientPlayNetworking.send(new ViewTogglePayload(droneUuid.toString()));
+					CameraManager.update(droneUuid, !CameraManager.DroneCamera);
 				}
 			).position(btnStartX + (buttonWidth + 4) * 3, btnY).size(buttonWidth, buttonHeight).build();
 			buttonTooltips.put(extraBtn, Text.literal("Take the Drone's Vision"));

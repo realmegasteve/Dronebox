@@ -3,6 +3,7 @@ package net.Neomoon.dronebox;
 import net.Neomoon.dronebox.LUA.CustomRegexMarkersLUA;
 import net.Neomoon.dronebox.LUA.LUAObjects.*;
 import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
+import net.Neomoon.dronebox.items.MainModItemw;
 import net.Neomoon.dronebox.items.ModItems;
 import net.Neomoon.dronebox.network.DroneStatePayload;
 import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
@@ -254,19 +255,16 @@ public class Drone extends MobEntity {
 				}
 			}
 			if (accessoryState) {
-				if (acc == ModItems.TOPLIGHT_ACCESSORY) {
-					getWorld().addParticleClient(
-						ParticleTypes.END_ROD,
-						this.getX(), this.getY() + 0.1, this.getZ(),
-						0.0, 0.0, 0.0
-					);
-				}
-				if (acc == ModItems.SPOTLIGHT_ACCESSORY) {
-					getWorld().addParticleClient(
-						ParticleTypes.END_ROD,
-						this.getX(), this.getY() - 0.2, this.getZ(),
-						0.0, 0.0, 0.0
-					);
+				if (!getWorld().isClient) {
+					if (acc == MainModItemw.TOPLIGHT_ACCESSORY) {
+						ServerWorld serverWorld = (ServerWorld) getWorld();
+						serverWorld.spawnParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
+					}
+
+					if (acc == MainModItemw.SPOTLIGHT_ACCESSORY) {
+						ServerWorld serverWorld = (ServerWorld) getWorld();
+						serverWorld.spawnParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
+					}
 				}
 			}
 

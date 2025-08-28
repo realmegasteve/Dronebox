@@ -32,10 +32,6 @@ public class CentralDroneInit implements ModInitializer {
 		Registry.register(Registries.ENTITY_TYPE, DRONE_KEY.getValue(), DRONE_ENTITY_TYPE);
 		FabricDefaultAttributeRegistry.register(DRONE_ENTITY_TYPE, Drone.createDroneAttributes());
 		DroneNetworking.register();
-
-
-
-
 	}
 
 }

@@ -4,15 +4,19 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.Neomoon.dronebox.items.MainModItemw;
 import net.Neomoon.dronebox.items.ModItems;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -30,9 +34,116 @@ public class DroneboxMain implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ModItems.registerModItems();
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			ModItems.registerModItems();
+			EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 0, Identifier.of(MOD_ID, "textures/entity/drone.png"));
+			EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 1, Identifier.of(MOD_ID, "textures/entity/drone_eyes.png"));
+			EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 2, Identifier.of(MOD_ID, "textures/entity/drone_boosters.png"));
+			EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 3, Identifier.of(MOD_ID, "textures/entity/drone_lamp.png"));
+			EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 4, Identifier.of(MOD_ID, "textures/entity/drone_spot.png"));
 
-		Radio.register();
+			// Cthulhu accessory
+			Drone.registerAccessory(ModItems.EYE_ACCESSORY,
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 1);
+					}
+				},
+				(world, uuid, drone) -> {
+
+				},
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+					}
+				}
+			);
+
+// Spotlight accessory
+			Drone.registerAccessory(ModItems.SPOTLIGHT_ACCESSORY,
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 4);
+						FlareRenderManager.toggle(uuid, true);
+					}
+				},
+				(world, uuid, drone) -> {},
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+						FlareRenderManager.toggle(uuid, false);
+					}
+				}
+			);
+
+// Toplight accessory
+			Drone.registerAccessory(ModItems.TOPLIGHT_ACCESSORY,
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 3);
+					}
+				},
+				(world, uuid, drone) -> {},
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+					}
+				}
+			);
+
+		} else {
+			MainModItemw.registerModItems();
+
+			// Cthulhu accessory
+			Drone.registerAccessory(MainModItemw.EYE_ACCESSORY,
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 1);
+					}
+				},
+				(world, uuid, drone) -> {
+
+				},
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+					}
+				}
+			);
+
+// Spotlight accessory
+			Drone.registerAccessory(MainModItemw.SPOTLIGHT_ACCESSORY,
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 4);
+						FlareRenderManager.toggle(uuid, true);
+					}
+				},
+				(world, uuid, drone) -> {},
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+						FlareRenderManager.toggle(uuid, false);
+					}
+				}
+			);
+
+// Toplight accessory
+			Drone.registerAccessory(MainModItemw.TOPLIGHT_ACCESSORY,
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 3);
+					}
+				},
+				(world, uuid, drone) -> {},
+				(world, uuid, drone) -> {
+					if (world instanceof ServerWorld serverWorld) {
+						EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+					}
+				}
+			);
+		}
+
 
 
 // Booster accessory
@@ -44,7 +155,13 @@ public class DroneboxMain implements ModInitializer {
 				}
 			},
 			(world, uuid, drone) -> {
-				drone.setVelocity(drone.getVelocity().multiply(1.5));
+				drone.setVelocity(drone.getVelocity().multiply(1 + Math.abs(drone.forwardInput * 0.2)));
+				if (drone.forwardInput != 0){
+					if (!world.isClient) {
+						ServerWorld serverWorld = (ServerWorld) world;
+						serverWorld.spawnParticles(ParticleTypes.FIREWORK, drone.getX(), drone.getY(), drone.getZ(), 5, 0.1, 0.1, 0.1, 0.1);
+					}
+				}
 			}, // tick
 			(world, uuid, drone) -> {   // remove
 				if (world instanceof ServerWorld serverWorld) {
@@ -52,64 +169,7 @@ public class DroneboxMain implements ModInitializer {
 				}
 			}
 		);
-
-// Cthulhu accessory
-		Drone.registerAccessory(ModItems.EYE_ACCESSORY,
-			(world, uuid, drone) -> {
-				if (world instanceof ServerWorld serverWorld) {
-					EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 1);
-				}
-			},
-			(world, uuid, drone) -> {
-
-			},
-			(world, uuid, drone) -> {
-				if (world instanceof ServerWorld serverWorld) {
-					EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
-				}
-			}
-		);
-
-// Spotlight accessory
-		Drone.registerAccessory(ModItems.SPOTLIGHT_ACCESSORY,
-			(world, uuid, drone) -> {
-				if (world instanceof ServerWorld serverWorld) {
-					EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 4);
-					FlareRenderManager.toggle(uuid, true);
-				}
-			},
-			(world, uuid, drone) -> {},
-			(world, uuid, drone) -> {
-				if (world instanceof ServerWorld serverWorld) {
-					EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
-					FlareRenderManager.toggle(uuid, false);
-				}
-			}
-		);
-
-// Toplight accessory
-		Drone.registerAccessory(ModItems.TOPLIGHT_ACCESSORY,
-			(world, uuid, drone) -> {
-				if (world instanceof ServerWorld serverWorld) {
-					EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 3);
-				}
-			},
-			(world, uuid, drone) -> {},
-			(world, uuid, drone) -> {
-				if (world instanceof ServerWorld serverWorld) {
-					EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
-				}
-			}
-		);
-
-
-
 		registerCommands();
-		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 0, Identifier.of(MOD_ID, "textures/entity/drone.png"));
-		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 1, Identifier.of(MOD_ID, "textures/entity/drone_eyes.png"));
-		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 2, Identifier.of(MOD_ID, "textures/entity/drone_boosters.png"));
-		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 3, Identifier.of(MOD_ID, "textures/entity/drone_lamp.png"));
-		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 4, Identifier.of(MOD_ID, "textures/entity/drone_spot.png"));
 	}
 
 	private void registerCommands() {
