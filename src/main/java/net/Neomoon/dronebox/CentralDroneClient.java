@@ -34,6 +34,7 @@ public class CentralDroneClient implements ClientModInitializer {
 		DroneStatePayloadBatchesDispatcher.initialize();
 		DroneNetworking.registerclient();
 		DroneModelLayers.init();
+		Radio.register();
 
 
 		EntityRendererRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, DroneRenderer::new);

@@ -1,5 +1,7 @@
 package net.Neomoon.dronebox.LUA;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import org.luaj.vm2.*;
@@ -80,16 +82,18 @@ public class MinecraftLuaInterpreter {
 
 
 	public void run(String code) throws ExecutionException, InterruptedException {
-		outputBuffer = new StringWriter();
-		Future<?> f = exec.submit(() -> {
-			LuaValue chunk = globals.load(code, "script");
-			chunk.call();
-		});
-		try {
-			f.get(3, TimeUnit.SECONDS);
-		} catch (TimeoutException e) {
-			f.cancel(true);
-			throw new RuntimeException("Lua script timed out", e);
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			outputBuffer = new StringWriter();
+			Future<?> f = exec.submit(() -> {
+				LuaValue chunk = globals.load(code, "script");
+				chunk.call();
+			});
+			try {
+				f.get(3, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				f.cancel(true);
+				throw new RuntimeException("Lua script timed out", e);
+			}
 		}
 	}
 
@@ -102,20 +106,22 @@ public class MinecraftLuaInterpreter {
 	}
 
 	public void runFunction(String name) throws ExecutionException, InterruptedException {
-		LuaValue func = globals.get(name);
-		if (func.isnil()) {
-			var mc = MinecraftClient.getInstance();
-			if (mc != null && mc.player != null) {
-				mc.player.sendMessage(Text.of(name + " function not found"), true);
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			LuaValue func = globals.get(name);
+			if (func.isnil()) {
+				var mc = MinecraftClient.getInstance();
+				if (mc != null && mc.player != null) {
+					mc.player.sendMessage(Text.of(name + " function not found"), true);
+				}
+				return;
 			}
-			return;
-		}
-		Future<?> f = exec.submit(() -> func.call());
-		try {
-			f.get(3, TimeUnit.SECONDS);
-		} catch (TimeoutException e) {
-			f.cancel(true);
-			throw new RuntimeException("Lua " + name + " timed out", e);
+			Future<?> f = exec.submit(() -> func.call());
+			try {
+				f.get(3, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				f.cancel(true);
+				throw new RuntimeException("Lua " + name + " timed out", e);
+			}
 		}
 	}
 

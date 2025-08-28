@@ -1,5 +1,6 @@
 package net.Neomoon.dronebox;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import java.util.HashMap;
@@ -9,7 +10,7 @@ public class Radio {
 	public static Map<String, Double> Channel1 = new HashMap<>();
 	public static Map<String, Double> BufferChannel1 = new HashMap<>();
 	public static void register() {
-		ServerTickEvents.START_SERVER_TICK.register(server -> {
+		ClientTickEvents.START_WORLD_TICK.register(server -> {
 			Channel1 = BufferChannel1;
 			BufferChannel1.clear();
 		});
