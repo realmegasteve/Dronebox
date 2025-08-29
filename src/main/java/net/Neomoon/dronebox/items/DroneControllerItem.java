@@ -41,7 +41,6 @@ public class DroneControllerItem extends Item {
 		super(settings);
 	}
 
-
 	public void addDrone(ItemStack controllerStack, LivingEntity drone, PlayerEntity player) {
 		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();

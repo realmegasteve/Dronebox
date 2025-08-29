@@ -20,9 +20,12 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemStack;
 
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static net.Neomoon.dronebox.DroneboxMain.MOD_ID;
 
 public class CentralDroneClient implements ClientModInitializer {
 
@@ -31,6 +34,12 @@ public class CentralDroneClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 0, Identifier.of(MOD_ID, "textures/entity/drone.png"));
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 1, Identifier.of(MOD_ID, "textures/entity/drone_eyes.png"));
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 2, Identifier.of(MOD_ID, "textures/entity/drone_boosters.png"));
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 3, Identifier.of(MOD_ID, "textures/entity/drone_lamp.png"));
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 4, Identifier.of(MOD_ID, "textures/entity/drone_spot.png"));
+
 		DroneStatePayloadBatchesDispatcher.initialize();
 		DroneNetworking.registerclient();
 		DroneModelLayers.init();

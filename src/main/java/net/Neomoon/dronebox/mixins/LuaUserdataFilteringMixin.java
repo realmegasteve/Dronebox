@@ -8,9 +8,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
-@Mixin(targets = "org.luaj.vm2.LuaUserdata", remap = false)
+@Mixin(value = LuaUserdata.class, remap = false)
 public class LuaUserdataFilteringMixin {
 
 	@Inject(
@@ -21,7 +22,7 @@ public class LuaUserdataFilteringMixin {
 	)
 	private void FilteredGetSafeThisTimeUwU(LuaValue key, CallbackInfoReturnable<LuaValue> cir) {
 		if (key != null && key.isstring()) {
-			String methodName = key.tojstring().toLowerCase();
+			String methodName = key.tojstring().toLowerCase(Locale.ROOT);
 			if (FORBIDDEN_METHODS_No_Gud_UwU.contains(methodName)) {
 				cir.setReturnValue(LuaValue.NIL);
 				cir.cancel();
