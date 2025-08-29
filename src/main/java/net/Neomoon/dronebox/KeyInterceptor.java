@@ -13,6 +13,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.List;
 import java.util.UUID;
 
+// TODO: prevent this from interfering with default vanilla keybinds
 public class KeyInterceptor {
 	private static KeyBinding keyForward;
 	private static KeyBinding keyBack;
@@ -34,9 +35,9 @@ public class KeyInterceptor {
 		keyYawRight = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dronecontrol.yaw_right", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_E, "category.dronecontrol"));
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (client.player == null) return;
+			if (client.player == null || client.world == null) return;
 			var held = client.player.getMainHandStack();
-			if (!(held.getItem() instanceof net.Neomoon.dronebox.items.DroneControllerItem)) return;
+			if (!(held.getItem() instanceof DroneControllerItem)) return;
 
 			float forward = 0f;
 			float strafe = 0f;
@@ -70,10 +71,8 @@ public class KeyInterceptor {
 
 					Entity e = client.world.getEntity(uuid);
 					if (e instanceof Drone drone) {
-						double forward2 = forward;
-						double strafe2 = strafe;
 						double up2 = (jump? 1 : 0) + (sneak? -1 : 0);
-						drone.controllerMovementInput(forward2, strafe2, up2, yawDelta);
+						drone.controllerMovementInput(forward, strafe, up2, yawDelta);
 					}
 				}
 			}

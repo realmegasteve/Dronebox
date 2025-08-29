@@ -6,8 +6,7 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import java.util.UUID;
-
+// TODO: implement receiver or remove this payload
 public record CameraFramePayload(String droneUuid, byte[] imageData) implements CustomPayload {
 	public static final Identifier ID_RAW = Identifier.of("dronebox", "camera_frame");
 	public static final CustomPayload.Id<CameraFramePayload> ID = new CustomPayload.Id<>(ID_RAW);

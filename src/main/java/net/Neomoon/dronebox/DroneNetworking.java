@@ -105,7 +105,6 @@ public static void registerclient(){
 
 			byte[] imageData = drone.renderCameraToBytes();
 
-
 			CameraFramePayload frame = new CameraFramePayload(drone.getUuidAsString(), imageData);
 			ServerPlayNetworking.send(player, frame);
 		}

@@ -71,7 +71,7 @@ public class DroneHUD {
 	private static void registerTextureIfMissing(Identifier id, NativeImageBackedTexture tex) {
 		TextureManager manager = mc.getTextureManager();
 		if (manager.getTexture(id) == null) {
-			NativeImageBackedTexture wrapped = new NativeImageBackedTexture((Supplier<String>) () -> id.toString(), tex.getImage());
+			NativeImageBackedTexture wrapped = new NativeImageBackedTexture(id::toString, tex.getImage());
 			manager.registerTexture(id, wrapped);
 		}
 	}
@@ -79,81 +79,8 @@ public class DroneHUD {
 	public static void drawTextureCompat(DrawContext ctx, Identifier texId,
 										 int x, int y, int width, int height,
 										 int textureWidth, int textureHeight) {
-		List<RenderPipeline> pipelines = RenderPipelines.getAll();
-		RenderPipeline pipeline = pipelines.isEmpty() ? null : pipelines.getFirst();
-		ctx.drawTexture(pipeline, texId, x, y, 0f, 0f, width, height, textureWidth, textureHeight);
-		/*
-		try {
-			Method[] methods = ctx.getClass().getMethods();
-			for (Method m : methods) {
-				if (!m.getName().equals("drawTexture")) continue;
-				Class<?>[] params = m.getParameterTypes();
-				Object[] args = new Object[params.length];
-				boolean ok = true;
-				int[] ints = new int[]{x, y, width, height, textureWidth, textureHeight};
-				int intIdx = 0;
-				float[] floats = new float[]{0f, 0f};
-				int floatIdx = 0;
-
-				for (int pi = 0; pi < params.length; pi++) {
-					Class<?> p = params[pi];
-					if (pi == 0 && p.getName().contains("RenderPipeline")) {
-						try {
-
-							continue;
-						} catch (Throwable t) {
-							args[pi] = null;
-							continue;
-						}
-					}
-					if (Identifier.class.isAssignableFrom(p)) {
-						args[pi] = texId;
-						continue;
-					}
-					if (p == float.class || p == Float.class) {
-						if (floatIdx < floats.length) {
-							args[pi] = floats[floatIdx++];
-						} else {
-							args[pi] = 0f;
-						}
-						continue;
-					}
-					if (p == int.class || p == Integer.class) {
-						if (intIdx < ints.length) {
-							args[pi] = ints[intIdx++];
-						} else {
-							args[pi] = 0;
-						}
-						continue;
-					}
-					if (p == boolean.class || p == Boolean.class) {
-						args[pi] = false;
-						continue;
-					}
-					try {
-						Class<?> matrixStackClass = Class.forName("net.minecraft.client.util.math.MatrixStack");
-						if (matrixStackClass.isAssignableFrom(p)) {
-							try {
-								Method gm = ctx.getClass().getMethod("getMatrices");
-								Object ms = gm.invoke(ctx);
-								args[pi] = ms;
-								continue;
-							} catch (Throwable ignored) {}
-						}
-					} catch (ClassNotFoundException ignored) {}
-					args[pi] = null;
-				}
-				try {
-					m.invoke(ctx, args);
-					return;
-				} catch (IllegalArgumentException iae) {
-					continue;
-				} catch (Throwable t) {
-					continue;
-				}
-			}
-		} catch (Throwable ex) {}
-		 */
+		// TODO: find and use the correct pipeline. GUI_TEXTURED is likely what you want
+		ctx.drawTexture(RenderPipelines.GUI_TEXTURED, texId, x, y, 0f, 0f, width, height, textureWidth, textureHeight);
 	}
 
 	public static NativeImageBackedTexture loadTextureFromResource(Identifier id) {
@@ -174,6 +101,6 @@ public class DroneHUD {
 
 	public static void updateDroneImage(int slot, NativeImage newImage) {
 		if (newImage == null) return;
-		droneCams.put(slot, new NativeImageBackedTexture((Supplier<String>) () -> "drone_cam_" + slot, newImage));
+		droneCams.put(slot, new NativeImageBackedTexture(() -> "drone_cam_" + slot, newImage));
 	}
 }
