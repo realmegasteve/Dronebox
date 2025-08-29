@@ -1,8 +1,9 @@
 package net.Neomoon.dronebox.gui;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.Neomoon.dronebox.CameraManager;
-import net.Neomoon.dronebox.DroneCameraManager;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
@@ -14,7 +15,6 @@ import org.joml.Matrix3x2fStack;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -79,6 +79,10 @@ public class DroneHUD {
 	public static void drawTextureCompat(DrawContext ctx, Identifier texId,
 										 int x, int y, int width, int height,
 										 int textureWidth, int textureHeight) {
+		List<RenderPipeline> pipelines = RenderPipelines.getAll();
+		RenderPipeline pipeline = pipelines.isEmpty() ? null : pipelines.getFirst();
+		ctx.drawTexture(pipeline, texId, x, y, 0f, 0f, width, height, textureWidth, textureHeight);
+		/*
 		try {
 			Method[] methods = ctx.getClass().getMethods();
 			for (Method m : methods) {
@@ -95,13 +99,7 @@ public class DroneHUD {
 					Class<?> p = params[pi];
 					if (pi == 0 && p.getName().contains("RenderPipeline")) {
 						try {
-							Class<?> renderPipelinesClass = Class.forName("com.mojang.blaze3d.pipeline.RenderPipelines");
-							Method getAll = renderPipelinesClass.getMethod("getAll");
-							Object listObj = getAll.invoke(null);
-							@SuppressWarnings("unchecked")
-							List<?> pipelines = (List<?>) listObj;
-							Object pipeline = pipelines.isEmpty() ? null : pipelines.get(0);
-							args[pi] = pipeline;
+
 							continue;
 						} catch (Throwable t) {
 							args[pi] = null;
@@ -155,6 +153,7 @@ public class DroneHUD {
 				}
 			}
 		} catch (Throwable ex) {}
+		 */
 	}
 
 	public static NativeImageBackedTexture loadTextureFromResource(Identifier id) {

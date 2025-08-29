@@ -5,24 +5,21 @@ import net.Neomoon.dronebox.Drone;
 import net.Neomoon.dronebox.gui.DroneControlScreen;
 import net.Neomoon.dronebox.network.ToggleC2SPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.*;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -192,9 +189,7 @@ public class DroneControllerItem extends Item {
 	public static void setDroneName(ItemStack controllerStack, String uuidStr, String newName, World world) {
 		if (newName == null) newName = "";
 
-
 		setStoredDroneName(controllerStack, uuidStr, newName);
-
 
 		if (world != null && !world.isClient) {
 			try {
@@ -233,56 +228,30 @@ public class DroneControllerItem extends Item {
 	}
 
 	public static Entity getDroneEntityByUUID(ItemStack controllerStack, String uuidStr) {
-		try {
-			UUID uuid = UUID.fromString(uuidStr);
-			MinecraftClient mc = MinecraftClient.getInstance();
-			if (mc != null && mc.world != null) {
-				try {
-					try {
-						Method m = mc.world.getClass().getMethod("getEntityByUuid", UUID.class);
-						Entity byUuid = (Entity) m.invoke(mc.world, uuid);
-						if (byUuid != null) return byUuid;
-					} catch (NoSuchMethodException ignored) { }
-
-					try {
-						Method m2 = mc.world.getClass().getMethod("getEntity", UUID.class);
-						Entity byUuid2 = (Entity) m2.invoke(mc.world, uuid);
-						if (byUuid2 != null) return byUuid2;
-					} catch (NoSuchMethodException ignored) { }
-
-
-					try {
-						Method entitiesMethod = mc.world.getClass().getMethod("getEntities");
-						Object listObj = entitiesMethod.invoke(mc.world);
-						if (listObj instanceof Iterable<?>) {
-							for (Object o : (Iterable<?>) listObj) {
-								if (o instanceof Entity e && e.getUuid().equals(uuid)) return e;
-							}
-						}
-					} catch (NoSuchMethodException ignored) { }
-				} catch (IllegalAccessException | InvocationTargetException ignored) { }
-			}
-		} catch (Exception ignored) { }
-
+		UUID uuid = UUID.fromString(uuidStr);
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if (mc != null && mc.world != null) {
+			return mc.world.getEntity(uuid);
+		}
 		return null;
 	}
 
-
-
 	@Override
 	public Text getName(ItemStack stack) {
+		// why
 		return Text.literal("Drone Controller");
 	}
 
 	@Override
-	public net.minecraft.util.ActionResult useOnEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, net.minecraft.util.Hand hand) {
+	public ActionResult useOnEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, net.minecraft.util.Hand hand) {
 		if (entity instanceof Drone drone) {
 			ItemStack stack2 = player.getStackInHand(hand);
 			addDrone(stack2, drone, player);
-			return net.minecraft.util.ActionResult.SUCCESS;
+			return ActionResult.SUCCESS;
 		}
-		return net.minecraft.util.ActionResult.PASS;
+		return ActionResult.PASS;
 	}
+
 	public static List<LivingEntity> getActiveCameraDrones(ItemStack controllerStack, ClientWorld world) {
 		List<LivingEntity> activeDrones = new ArrayList<>();
 		List<String> linkedUUIDs = getLinkedDroneUUIDs(controllerStack);
@@ -318,13 +287,13 @@ public class DroneControllerItem extends Item {
 	}
 
 	@Override
-	public net.minecraft.util.ActionResult use(net.minecraft.world.World world, PlayerEntity player, net.minecraft.util.Hand hand) {
+	public ActionResult use(net.minecraft.world.World world, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getStackInHand(hand);
 		if (world.isClient) {
 			if (player.isSneaking()) {
-				MinecraftClient.getInstance().execute(() -> {
-					MinecraftClient.getInstance().setScreen(new DroneControlScreen(stack));
-				});
+				MinecraftClient.getInstance().execute(() ->
+					MinecraftClient.getInstance().setScreen(new DroneControlScreen(stack))
+				);
 
 			} else {
 				List<String> linkedDrones = getLinkedDroneUUIDs(stack);
@@ -338,9 +307,8 @@ public class DroneControllerItem extends Item {
 				}
 			}
 		}
-		return net.minecraft.util.ActionResult.SUCCESS;
+		return ActionResult.SUCCESS;
 	}
-
 
 	private void sendTogglePacket(String droneUuid) {
 		ToggleC2SPayload payload = new ToggleC2SPayload(droneUuid);
