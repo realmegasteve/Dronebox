@@ -1,4 +1,4 @@
-package net.Neomoon.dronebox.mixins;
+package net.Neomoon.dronebox.mixins.client;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;

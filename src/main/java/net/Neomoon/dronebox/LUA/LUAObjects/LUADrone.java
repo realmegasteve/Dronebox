@@ -6,6 +6,7 @@ import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
+@SuppressWarnings("unused")
 public class LUADrone {
 	private final Drone drone;
 	private final double max = 0.6;
@@ -22,7 +23,7 @@ public class LUADrone {
 	}
 
 	public void setAccessory(boolean state){
-		drone.setAcessory(state);
+		drone.setAccessory(state);
 	}
 
 	public void accelerateTurning(double yaw, double pitch, double roll){

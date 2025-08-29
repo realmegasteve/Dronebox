@@ -2,8 +2,6 @@ package net.Neomoon.dronebox.gui;
 
 import net.Neomoon.dronebox.CameraManager;
 import net.Neomoon.dronebox.items.DroneControllerItem;
-import net.Neomoon.dronebox.network.ViewTogglePayload;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -23,7 +21,7 @@ public class DroneControlScreen extends Screen {
 	private final Map<ButtonWidget, Text> buttonTooltips = new HashMap<>();
 
 	public DroneControlScreen(ItemStack controller) {
-		super(Text.literal("Drone Control"));
+		super(Text.literal("Drone Control")); // TODO: translate text
 		this.controllerStack = controller;
 	}
 
@@ -182,11 +180,6 @@ public class DroneControlScreen extends Screen {
 		}
 	}
 
-	private static class PanelRect {
-		final int x, y, w, h;
-		final boolean enabled;
-		PanelRect(int x, int y, int w, int h, boolean enabled) {
-			this.x = x; this.y = y; this.w = w; this.h = h; this.enabled = enabled;
-		}
+	private record PanelRect(int x, int y, int w, int h, boolean enabled) {
 	}
 }

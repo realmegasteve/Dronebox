@@ -73,7 +73,7 @@ public class Drone extends MobEntity {
 	private static final ChunkTicketType DRONE_TICKET =
 		ChunkTicketType.PLAYER_SIMULATION;
 
-	public void setAcessory(boolean state) {
+	public void setAccessory(boolean state) {
 		accessoryState = state;
 	}
 
@@ -488,7 +488,6 @@ public class Drone extends MobEntity {
 		this.pitch += this.pitchRate;
 		this.roll  += this.rollRate;
 
-
 	}
 
 	public double getRoll() {
@@ -497,7 +496,7 @@ public class Drone extends MobEntity {
 
 	@Override
 	public float getYaw() {
-		return (float) this.getHeadYaw();
+		return this.getHeadYaw();
 	}
 
 	public float getPitch() {

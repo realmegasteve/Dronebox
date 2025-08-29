@@ -27,51 +27,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static net.Neomoon.dronebox.items.ModItems.CONTROLLER_COMPONENT;
+
 
 public class DroneControllerItem extends Item {
-	private static final String LINKED_LIST_KEY = "linked_drones";
-	private static final String CONTROL_STATES_KEY = "control_states";
-	private static final String CAMERA_STATES_KEY = "camera_states";
+	protected static final String LINKED_LIST_KEY = "linked_drones";
+	protected static final String CONTROL_STATES_KEY = "control_states";
+	protected static final String CAMERA_STATES_KEY = "camera_states";
 
-
-	private static final String ENABLED_STATES_KEY = "enabled_states";
-	private static final String NAMES_KEY = "drone_names";
+	protected static final String ENABLED_STATES_KEY = "enabled_states";
+	protected static final String NAMES_KEY = "drone_names";
 
 	public DroneControllerItem(Settings settings) {
 		super(settings);
 	}
 
 	public void addDrone(ItemStack controllerStack, LivingEntity drone, PlayerEntity player) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY).copy();
 
-		NbtList linkedDrones;
-		if (!root.contains(LINKED_LIST_KEY)) {
-			linkedDrones = new NbtList();
-			root.put(LINKED_LIST_KEY, linkedDrones);
-		} else {
-			linkedDrones = root.getListOrEmpty(LINKED_LIST_KEY);
-		}
+		List<String> linkedDrones = controller.linkedDrones();
 
 		String uuidStr = drone.getUuidAsString();
-		NbtString uuidNbt = NbtString.of(uuidStr);
 
-		if (linkedDrones.contains(uuidNbt)) {
-
-			linkedDrones.remove(uuidNbt);
-
-			if (root.contains(CONTROL_STATES_KEY)) {
-				root.getCompound(CONTROL_STATES_KEY).ifPresent(compound -> compound.remove(uuidStr));
-			}
-			if (root.contains(CAMERA_STATES_KEY)) {
-				root.getCompound(CAMERA_STATES_KEY).ifPresent(compound -> compound.remove(uuidStr));
-			}
-			if (root.contains(ENABLED_STATES_KEY)) {
-				root.getCompound(ENABLED_STATES_KEY).ifPresent(compound -> compound.remove(uuidStr));
-			}
-			if (root.contains(NAMES_KEY)) {
-				root.getCompound(NAMES_KEY).ifPresent(compound -> compound.remove(uuidStr));
-			}
+		if (linkedDrones.contains(uuidStr)) {
+			linkedDrones.remove(uuidStr);
+			controller.controlStates().remove(uuidStr);
+			controller.cameraStates().remove(uuidStr);
+			controller.enabledStates().remove(uuidStr);
+			controller.droneNames().remove(uuidStr);
 
 			if (!player.getWorld().isClient) {
 				player.sendMessage(Text.literal("Drone removed from controller!"), true);
@@ -83,187 +66,105 @@ public class DroneControllerItem extends Item {
 				}
 				return;
 			}
-			linkedDrones.add(uuidNbt);
+			linkedDrones.add(uuidStr);
 
-
-			NbtCompound controlStates = root.contains(CONTROL_STATES_KEY) ? root.getCompoundOrEmpty(CONTROL_STATES_KEY) : new NbtCompound();
-			NbtCompound cameraStates = root.contains(CAMERA_STATES_KEY) ? root.getCompoundOrEmpty(CAMERA_STATES_KEY) : new NbtCompound();
-			NbtCompound enabledStates = root.contains(ENABLED_STATES_KEY) ? root.getCompoundOrEmpty(ENABLED_STATES_KEY) : new NbtCompound();
-
-			controlStates.putBoolean(uuidStr, true);
-			cameraStates.putBoolean(uuidStr, false);
-			enabledStates.putBoolean(uuidStr, true);
-
-			root.put(CONTROL_STATES_KEY, controlStates);
-			root.put(CAMERA_STATES_KEY, cameraStates);
-			root.put(ENABLED_STATES_KEY, enabledStates);
+			controller.controlStates().put(uuidStr, true);
+			controller.cameraStates().put(uuidStr, false);
+			controller.enabledStates().put(uuidStr, true);
 
 			if (!player.getWorld().isClient) {
 				player.sendMessage(Text.literal("Drone added to controller!"), true);
 			}
 		}
-
-		root.put(LINKED_LIST_KEY, linkedDrones);
-		controllerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+		controllerStack.set(CONTROLLER_COMPONENT, controller);
 	}
 
-
 	public static List<String> getLinkedDroneUUIDs(ItemStack controllerStack) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY);
 
 		List<String> linked_drones = new ArrayList<>();
-		NbtList listTag = root.getListOrEmpty(LINKED_LIST_KEY);
+		List<String> controllerDrones = controller.linkedDrones();
 
 		boolean modified = false;
-		for (int i = 0; i < listTag.size(); i++) {
-			if (listTag.get(i) instanceof NbtString nbtStr) {
-				String raw = nbtStr.asString().orElse("").trim();
+		for (String string : controllerDrones) {
+			String raw = string.trim();
 
+			if (raw.startsWith("\"") && raw.endsWith("\"") && raw.length() > 2) {
+				raw = raw.substring(1, raw.length() - 1);
+			}
 
-				if (raw.startsWith("\"") && raw.endsWith("\"") && raw.length() > 2) {
-					raw = raw.substring(1, raw.length() - 1);
-				}
-
-				try {
-					UUID.fromString(raw);
-					linked_drones.add(raw);
-				} catch (IllegalArgumentException e) {
-					System.err.println("[DroneControllerItem] Skipping invalid stored UUID: '" + raw + "'");
-					modified = true;
-				}
-			} else {
+			try {
+				UUID.fromString(raw);
+				linked_drones.add(raw);
+			} catch (IllegalArgumentException e) {
+				System.err.println("[DroneControllerItem] Skipping invalid stored UUID: '" + raw + "'");
 				modified = true;
 			}
 		}
 
-
 		if (modified) {
-			NbtList cleanList = new NbtList();
-			for (String s : linked_drones) cleanList.add(NbtString.of(s));
-			root.put(LINKED_LIST_KEY, cleanList);
-			controllerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+			controllerDrones.clear();
+			controllerDrones.addAll(linked_drones);
+			controllerStack.set(CONTROLLER_COMPONENT, controller.copy());
 		}
 
 		return linked_drones;
 	}
 
-
 	public static void removeDroneByUUID(ItemStack controllerStack, String uuidStr) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		NbtList linkedDrones = root.getListOrEmpty(LINKED_LIST_KEY);
-
-		for (int i = 0; i < linkedDrones.size(); i++) {
-			if (linkedDrones.get(i) instanceof NbtString nbtStr &&
-				uuidStr.equals(nbtStr.asString().orElse(""))) {
-				linkedDrones.remove(i);
-				break;
-			}
-		}
-
-		if (root.contains(CONTROL_STATES_KEY)) {
-			NbtCompound cs = root.getCompoundOrEmpty(CONTROL_STATES_KEY);
-			cs.remove(uuidStr);
-			root.put(CONTROL_STATES_KEY, cs);
-		}
-		if (root.contains(CAMERA_STATES_KEY)) {
-			NbtCompound cam = root.getCompoundOrEmpty(CAMERA_STATES_KEY);
-			cam.remove(uuidStr);
-			root.put(CAMERA_STATES_KEY, cam);
-		}
-		if (root.contains(ENABLED_STATES_KEY)) {
-			NbtCompound en = root.getCompoundOrEmpty(ENABLED_STATES_KEY);
-			en.remove(uuidStr);
-			root.put(ENABLED_STATES_KEY, en);
-		}
-		if (root.contains(NAMES_KEY)) {
-			NbtCompound nm = root.getCompoundOrEmpty(NAMES_KEY);
-			nm.remove(uuidStr);
-			root.put(NAMES_KEY, nm);
-		}
-
-		root.put(LINKED_LIST_KEY, linkedDrones);
-		controllerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY).copy();
+		controller.linkedDrones().remove(uuidStr);
+		controller.controlStates().remove(uuidStr);
+		controller.cameraStates().remove(uuidStr);
+		controller.enabledStates().remove(uuidStr);
+		controller.droneNames().remove(uuidStr);
+		controllerStack.set(CONTROLLER_COMPONENT, controller);
 	}
 
-
 	public static boolean isDroneControlEnabled(ItemStack controllerStack, String uuidStr) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		if (!root.contains(CONTROL_STATES_KEY)) return true;
-		NbtCompound cs = root.getCompoundOrEmpty(CONTROL_STATES_KEY);
-		if (!cs.contains(uuidStr)) return true;
-		return cs.getBoolean(uuidStr, false);
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY);
+		return controller.controlStates().getOrDefault(uuidStr, true);
 	}
 
 	public static void setDroneControlEnabled(ItemStack controllerStack, String uuidStr, boolean enabled) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		NbtCompound cs = root.contains(CONTROL_STATES_KEY) ? root.getCompoundOrEmpty(CONTROL_STATES_KEY) : new NbtCompound();
-		cs.putBoolean(uuidStr, enabled);
-		root.put(CONTROL_STATES_KEY, cs);
-		controllerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY).copy();
+		controller.controlStates().put(uuidStr, enabled);
+		controllerStack.set(CONTROLLER_COMPONENT, controller);
 	}
 
-
 	public static boolean isDroneCameraEnabled(ItemStack controllerStack, String uuidStr) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		if (!root.contains(CAMERA_STATES_KEY)) return false;
-		NbtCompound cs = root.getCompoundOrEmpty(CAMERA_STATES_KEY);
-		if (!cs.contains(uuidStr)) return false;
-		return cs.getBoolean(uuidStr, false);
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY);
+		return controller.cameraStates().getOrDefault(uuidStr, false);
 	}
 
 	public static void setDroneCameraEnabled(ItemStack controllerStack, String uuidStr, boolean enabled) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		NbtCompound cs = root.contains(CAMERA_STATES_KEY) ? root.getCompoundOrEmpty(CAMERA_STATES_KEY) : new NbtCompound();
-		cs.putBoolean(uuidStr, enabled);
-		root.put(CAMERA_STATES_KEY, cs);
-		controllerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY).copy();
+		controller.cameraStates().put(uuidStr, enabled);
+		controllerStack.set(CONTROLLER_COMPONENT, controller);
 	}
 
-
 	public static boolean isDroneEnabled(ItemStack controllerStack, String uuidStr) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		if (!root.contains(ENABLED_STATES_KEY)) return true;
-		NbtCompound es = root.getCompoundOrEmpty(ENABLED_STATES_KEY);
-		return es.contains(uuidStr) ? es.getBoolean(uuidStr, false) : true;
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY).copy();
+		return controller.enabledStates().getOrDefault(uuidStr, true);
 	}
 
 	public static void setDroneEnabled(ItemStack controllerStack, String uuidStr, boolean enabled) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		NbtCompound es = root.contains(ENABLED_STATES_KEY) ? root.getCompoundOrEmpty(ENABLED_STATES_KEY) : new NbtCompound();
-		es.putBoolean(uuidStr, enabled);
-		root.put(ENABLED_STATES_KEY, es);
-		controllerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY).copy();
+		controller.enabledStates().put(uuidStr, enabled);
+		controllerStack.set(CONTROLLER_COMPONENT, controller);
 	}
-
 
 	public static String getStoredDroneName(ItemStack controllerStack, String uuidStr) {
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		if (!root.contains(NAMES_KEY)) return null;
-		NbtCompound names = root.getCompoundOrEmpty(NAMES_KEY);
-		if (!names.contains(uuidStr)) return null;
-		return names.getString(uuidStr, "");
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY).copy();
+		return controller.droneNames().get(uuidStr);
 	}
-
 
 	public static void setStoredDroneName(ItemStack controllerStack, String uuidStr, String name) {
 		if (name == null) name = "";
-		NbtComponent comp = controllerStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
-		NbtCompound root = comp.copyNbt();
-		NbtCompound names = root.contains(NAMES_KEY) ? root.getCompoundOrEmpty(NAMES_KEY) : new NbtCompound();
-		names.putString(uuidStr, name);
-		root.put(NAMES_KEY, names);
-		controllerStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(root));
+		ControllerComponent controller = controllerStack.getOrDefault(CONTROLLER_COMPONENT, ControllerComponent.EMPTY).copy();
+		controller.droneNames().put(uuidStr, name);
+		controllerStack.set(CONTROLLER_COMPONENT, controller);
 	}
-
 
 	public static Text getDroneDisplayName(ItemStack controllerStack, String uuidStr) {
 		String stored = getStoredDroneName(controllerStack, uuidStr);

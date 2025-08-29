@@ -1,11 +1,14 @@
 package net.Neomoon.dronebox.items;
 
+import com.mojang.serialization.Codec;
 import net.Neomoon.dronebox.DroneboxMain;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -47,12 +50,17 @@ public class ModItems {
 
 	private static final ItemGroup DRONEBOX_GROUP;
 
+	public static final ComponentType<ControllerComponent> CONTROLLER_COMPONENT = ComponentType.<ControllerComponent>builder().codec(ControllerComponent.CODEC).packetCodec(ControllerComponent.PACKET_CODEC).build();
+
 	private static Item registerItem(String name, Item item) {
 		return Registry.register(Registries.ITEM, Identifier.of(DroneboxMain.MOD_ID, name), item);
 	}
 
 	public static void registerModItems() {
 		DroneboxMain.LOGGER.info("Registering Mod Items for " + DroneboxMain.MOD_ID);
+
+		Registry.register(Registries.ITEM_GROUP, DRONEBOX_GROUP_KEY, DRONEBOX_GROUP);
+		Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(DroneboxMain.MOD_ID, "controller_component"), CONTROLLER_COMPONENT);
 	}
 
 	static {
@@ -62,7 +70,7 @@ public class ModItems {
 			droneController = DroneControllerItem::new;
 			luaPendrive = LuaPendriveItem::new;
 		} else {
-			droneController = DroneControllerItemServer::new;
+			droneController = DroneControllerItem::new; // I'm relatively sure that you need this to be on server for some of the logic to work, unless we're just not using drone controllers
 			luaPendrive = Item::new;
 		}
 
@@ -88,7 +96,5 @@ public class ModItems {
 				entries.add(LUA_PENDRIVE);
 			})
 			.build();
-
-		Registry.register(Registries.ITEM_GROUP, DRONEBOX_GROUP_KEY, DRONEBOX_GROUP);
 	}
 }
