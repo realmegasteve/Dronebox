@@ -4,7 +4,7 @@ import net.Neomoon.dronebox.LUA.CustomRegexMarkersLUA;
 import net.Neomoon.dronebox.LUA.LUAObjects.*;
 import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
 import net.Neomoon.dronebox.items.ModItems;
-import net.Neomoon.dronebox.network.DroneStatePayload;
+import net.Neomoon.dronebox.network.DroneStateC2SPayload;
 import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.DataComponentTypes;
@@ -58,7 +58,7 @@ public class Drone extends MobEntity {
 	public double forwardInput = 0;
 	public double yawInput = 0;
 	public double upInput = 0;
-	public DroneStatePayload payload;
+	public DroneStateC2SPayload payload;
 
 	public boolean accessoryState;
 
@@ -294,7 +294,7 @@ public class Drone extends MobEntity {
 				controllerMovementInput(0, 0, 0, 0);
 				physics();
 
-				DroneStatePayload p = new DroneStatePayload(uuid.toString(), getX(), getY(), getZ(), getVelocity().x, getVelocity().y, getVelocity().z, accessoryState);
+				DroneStateC2SPayload p = new DroneStateC2SPayload(uuid.toString(), getX(), getY(), getZ(), getVelocity().x, getVelocity().y, getVelocity().z, accessoryState);
 				DroneStatePayloadBatchesDispatcher.queuePayload(p);
 
 			} else {
