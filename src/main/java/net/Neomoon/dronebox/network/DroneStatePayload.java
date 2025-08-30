@@ -5,9 +5,6 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
-
-import java.util.UUID;
 
 public record DroneStatePayload(
 	String drone,

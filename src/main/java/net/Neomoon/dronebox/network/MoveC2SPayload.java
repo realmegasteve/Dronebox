@@ -6,8 +6,6 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import java.util.UUID;
-
 
 public record MoveC2SPayload(
 	String droneUuid,

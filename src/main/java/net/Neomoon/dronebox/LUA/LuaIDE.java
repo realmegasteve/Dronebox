@@ -186,7 +186,7 @@ public class LuaIDE extends Screen {
 			saved = false;
 		}
 
-		context.drawText(this.textRenderer, "Python IDE", 40, 10 - this.textRenderer.fontHeight - 10, 0xFFFFFFFF, true);
+		context.drawText(this.textRenderer, "Python IDE", 40, -this.textRenderer.fontHeight, 0xFFFFFFFF, true);
 
 		try {
 			codeOutputLog.setMessage(Text.of(output));
@@ -200,9 +200,8 @@ public class LuaIDE extends Screen {
 		try {
 			help.setY((int) Math.round(mouseY * -0.1) + 40);
 		} catch (Exception e) {
-
+			// TODO: exception handing
 		}
-
 	}
 
 	private void saveCode(ItemStack drive, String code) {

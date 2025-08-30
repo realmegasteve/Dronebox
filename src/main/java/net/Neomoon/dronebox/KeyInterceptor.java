@@ -11,7 +11,6 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.Entity;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;

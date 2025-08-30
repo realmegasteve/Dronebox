@@ -4,6 +4,7 @@ import net.minecraft.client.model.*;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.render.entity.state.EntityRenderState;
 
+@SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class DroneEntityModel extends EntityModel<EntityRenderState> {
 	private final ModelPart root;
 	private final ModelPart accessories;

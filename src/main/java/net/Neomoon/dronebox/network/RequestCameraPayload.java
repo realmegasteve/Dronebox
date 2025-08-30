@@ -5,8 +5,6 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import java.util.UUID;
-
 
 public record RequestCameraPayload(String droneUuid) implements CustomPayload {
 	public static final Identifier ID_RAW = Identifier.of("dronebox", "request_camera");

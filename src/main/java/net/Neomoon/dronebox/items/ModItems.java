@@ -1,6 +1,5 @@
 package net.Neomoon.dronebox.items;
 
-import com.mojang.serialization.Codec;
 import net.Neomoon.dronebox.DroneboxMain;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -8,7 +7,6 @@ import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;

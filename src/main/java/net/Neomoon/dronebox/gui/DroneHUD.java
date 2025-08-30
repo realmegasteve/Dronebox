@@ -1,6 +1,5 @@
 package net.Neomoon.dronebox.gui;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.Neomoon.dronebox.CameraManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
@@ -11,15 +10,12 @@ import net.minecraft.client.texture.TextureManager;
 import net.minecraft.resource.Resource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.joml.Matrix3x2fStack;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.List;
 
 public class DroneHUD {
 	private static boolean toggle = false;
@@ -30,7 +26,7 @@ public class DroneHUD {
 		return Identifier.of("dronebox", "drone_cam_" + slot);
 	}
 
-	public static void renderHUD(Matrix3x2fStack matrices, DrawContext ctx) {
+	public static void renderHUD(DrawContext ctx) {
 		if (CameraManager.DroneCamera) {
 			return;
 		}
@@ -90,7 +86,7 @@ public class DroneHUD {
 				Resource res = opt.get();
 				try (InputStream is = res.getInputStream()) {
 					NativeImage img = NativeImage.read(is);
-					return new NativeImageBackedTexture((Supplier<String>) () -> id.toString(), img);
+					return new NativeImageBackedTexture(id::toString, img);
 				}
 			}
 		} catch (IOException e) {
