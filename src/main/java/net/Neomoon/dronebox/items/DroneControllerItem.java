@@ -2,9 +2,6 @@ package net.Neomoon.dronebox.items;
 
 import net.Neomoon.dronebox.CentralDroneInit;
 import net.Neomoon.dronebox.Drone;
-import net.Neomoon.dronebox.gui.DroneControlScreen;
-import net.Neomoon.dronebox.network.ToggleC2SPayload;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
@@ -288,30 +285,6 @@ public class DroneControllerItem extends Item {
 
 	@Override
 	public ActionResult use(net.minecraft.world.World world, PlayerEntity player, Hand hand) {
-		ItemStack stack = player.getStackInHand(hand);
-		if (world.isClient) {
-			if (player.isSneaking()) {
-				MinecraftClient.getInstance().execute(() ->
-					MinecraftClient.getInstance().setScreen(new DroneControlScreen(stack))
-				);
-
-			} else {
-				List<String> linkedDrones = getLinkedDroneUUIDs(stack);
-				if (!linkedDrones.isEmpty()) {
-					for (String droneUUID : linkedDrones) {
-						sendTogglePacket(droneUUID);
-					}
-					player.sendMessage(Text.literal("Toggled all linked drones."), true);
-				} else {
-					player.sendMessage(Text.literal("No linked drones to toggle."), true);
-				}
-			}
-		}
 		return ActionResult.SUCCESS;
-	}
-
-	private void sendTogglePacket(String droneUuid) {
-		ToggleC2SPayload payload = new ToggleC2SPayload(droneUuid);
-		ClientPlayNetworking.send(payload);
 	}
 }

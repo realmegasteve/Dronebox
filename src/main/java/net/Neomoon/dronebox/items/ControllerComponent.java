@@ -26,11 +26,11 @@ public record ControllerComponent(List<String> linkedDrones, Map<String, Boolean
 
 	public static final Codec<ControllerComponent> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
-				new MutableListCodec<>(Codec.STRING.listOf()).optionalFieldOf(DroneControllerItem.LINKED_LIST_KEY, ImmutableList.of()).forGetter(component -> component.linkedDrones),
-				STRING_TO_BOOL_CODEC.optionalFieldOf(DroneControllerItem.CONTROL_STATES_KEY, ImmutableMap.of()).forGetter(component -> component.controlStates),
-				STRING_TO_BOOL_CODEC.optionalFieldOf(DroneControllerItem.CAMERA_STATES_KEY, ImmutableMap.of()).forGetter(component -> component.cameraStates),
-				STRING_TO_BOOL_CODEC.optionalFieldOf(DroneControllerItem.ENABLED_STATES_KEY, ImmutableMap.of()).forGetter(component -> component.enabledStates),
-				STRING_TO_STRING_CODEC.optionalFieldOf(DroneControllerItem.NAMES_KEY, ImmutableMap.of()).forGetter(component -> component.droneNames)
+				new MutableListCodec<>(Codec.STRING.listOf()).optionalFieldOf(DroneControllerItem.LINKED_LIST_KEY, new ArrayList<>()).forGetter(component -> component.linkedDrones),
+				STRING_TO_BOOL_CODEC.optionalFieldOf(DroneControllerItem.CONTROL_STATES_KEY, new Object2ObjectOpenHashMap<>()).forGetter(component -> component.controlStates),
+				STRING_TO_BOOL_CODEC.optionalFieldOf(DroneControllerItem.CAMERA_STATES_KEY, new Object2ObjectOpenHashMap<>()).forGetter(component -> component.cameraStates),
+				STRING_TO_BOOL_CODEC.optionalFieldOf(DroneControllerItem.ENABLED_STATES_KEY, new Object2ObjectOpenHashMap<>()).forGetter(component -> component.enabledStates),
+				STRING_TO_STRING_CODEC.optionalFieldOf(DroneControllerItem.NAMES_KEY, new Object2ObjectOpenHashMap<>()).forGetter(component -> component.droneNames)
 			)
 			.apply(instance, ControllerComponent::new)
 	);
