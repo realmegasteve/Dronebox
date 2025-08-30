@@ -1,4 +1,4 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client.entity;
 
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.entity.model.EntityModel;

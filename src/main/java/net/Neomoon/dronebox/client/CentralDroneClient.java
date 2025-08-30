@@ -1,12 +1,16 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client;
 
-import net.Neomoon.dronebox.gui.DroneHUD;
+import net.Neomoon.dronebox.CentralDroneInit;
+import net.Neomoon.dronebox.client.entity.DroneModelLayers;
+import net.Neomoon.dronebox.client.entity.DroneRenderer;
+import net.Neomoon.dronebox.EntityTextureRegistry;
+import net.Neomoon.dronebox.client.gui.DroneHUD;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.items.ModItems;
 import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
-import net.Neomoon.dronebox.network.RequestCameraPayload;
-import net.Neomoon.dronebox.network.ViewUpdatePayload;
+import net.Neomoon.dronebox.network.RequestCameraC2SPayload;
+import net.Neomoon.dronebox.network.ViewUpdateS2CPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -45,7 +49,13 @@ public class CentralDroneClient implements ClientModInitializer {
 
 		//DroneNetworking.registerclient();
 		DroneStatePayloadBatchesDispatcher.initialize();
-		ClientPlayNetworking.registerGlobalReceiver(ViewUpdatePayload.ID, (payload, context) -> {
+		ClientPlayNetworking.registerGlobalReceiver(ViewUpdateS2CPayload.ID, (payload, context) -> {
+			context.client().execute(() -> handleViewupdatePayload(payload));
+		});
+
+		//DroneNetworking.registerclient();
+		DroneStatePayloadBatchesDispatcher.initialize();
+		ClientPlayNetworking.registerGlobalReceiver(ViewUpdateS2CPayload.ID, (payload, context) -> {
 			context.client().execute(() -> handleViewupdatePayload(payload));
 		});
 
@@ -92,7 +102,7 @@ public class CentralDroneClient implements ClientModInitializer {
 			PacketByteBuf buf = PacketByteBufs.create();
 			buf.writeInt(drones.size());
 			for (UUID u : drones) {
-				ClientPlayNetworking.send(new RequestCameraPayload(u.toString()));
+				ClientPlayNetworking.send(new RequestCameraC2SPayload(u.toString()));
 			}
 
 		} catch (Throwable t) {
@@ -143,7 +153,7 @@ public class CentralDroneClient implements ClientModInitializer {
 		});
 	}
 
-	private static void handleViewupdatePayload(ViewUpdatePayload payload) {
+	private static void handleViewupdatePayload(ViewUpdateS2CPayload payload) {
 		CameraManager.update(UUID.fromString(payload.target()), !CameraManager.DroneCamera);
 	}
 }

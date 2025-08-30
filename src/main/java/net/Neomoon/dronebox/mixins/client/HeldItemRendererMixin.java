@@ -1,6 +1,6 @@
 package net.Neomoon.dronebox.mixins.client;
 
-import net.Neomoon.dronebox.CameraManager;
+import net.Neomoon.dronebox.client.CameraManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.item.HeldItemRenderer;
 import org.spongepowered.asm.mixin.Mixin;

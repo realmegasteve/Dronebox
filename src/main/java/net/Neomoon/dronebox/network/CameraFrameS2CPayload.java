@@ -7,15 +7,15 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 // TODO: implement receiver or remove this payload
-public record CameraFramePayload(String droneUuid, byte[] imageData) implements CustomPayload {
+public record CameraFrameS2CPayload(String droneUuid, byte[] imageData) implements CustomPayload {
 	public static final Identifier ID_RAW = Identifier.of("dronebox", "camera_frame");
-	public static final CustomPayload.Id<CameraFramePayload> ID = new CustomPayload.Id<>(ID_RAW);
+	public static final CustomPayload.Id<CameraFrameS2CPayload> ID = new CustomPayload.Id<>(ID_RAW);
 
-	public static final PacketCodec<RegistryByteBuf, CameraFramePayload> CODEC =
+	public static final PacketCodec<RegistryByteBuf, CameraFrameS2CPayload> CODEC =
 		PacketCodec.tuple(
-			PacketCodecs.STRING, CameraFramePayload::droneUuid,
-			PacketCodecs.BYTE_ARRAY, CameraFramePayload::imageData,
-			CameraFramePayload::new
+			PacketCodecs.STRING, CameraFrameS2CPayload::droneUuid,
+			PacketCodecs.BYTE_ARRAY, CameraFrameS2CPayload::imageData,
+			CameraFrameS2CPayload::new
 		);
 
 	@Override

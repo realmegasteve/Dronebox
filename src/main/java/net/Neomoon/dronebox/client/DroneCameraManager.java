@@ -1,6 +1,6 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client;
 
-import net.Neomoon.dronebox.gui.DroneHUD;
+import net.Neomoon.dronebox.client.gui.DroneHUD;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 

@@ -3,7 +3,7 @@ package net.Neomoon.dronebox.mixins.client;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.Neomoon.dronebox.KeyInterceptor;
+import net.Neomoon.dronebox.client.KeyInterceptor;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.spongepowered.asm.mixin.Final;

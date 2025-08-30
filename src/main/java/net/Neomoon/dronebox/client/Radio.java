@@ -1,4 +1,4 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 

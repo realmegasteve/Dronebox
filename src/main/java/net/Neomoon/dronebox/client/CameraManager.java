@@ -1,4 +1,4 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;

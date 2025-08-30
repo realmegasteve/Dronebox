@@ -1,6 +1,6 @@
 package net.Neomoon.dronebox.mixins.client;
 
-import net.Neomoon.dronebox.gui.DroneControlScreen;
+import net.Neomoon.dronebox.client.gui.DroneControlScreen;
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.network.ToggleC2SPayload;
 import net.fabricmc.api.EnvType;
