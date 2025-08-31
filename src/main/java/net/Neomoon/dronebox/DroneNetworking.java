@@ -1,6 +1,7 @@
 package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
+import net.Neomoon.dronebox.items.DroneControllerItemServer;
 import net.Neomoon.dronebox.network.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -84,7 +85,7 @@ public static void registerclient(){
 	private static void handleTogglePayload(ServerPlayerEntity player, ToggleC2SPayload payload) {
 		Entity e = findEntityByUUID(player, UUID.fromString(payload.droneUuid()));
 		if (e instanceof Drone drone) {
-			DroneControllerItem.setDroneEnabled(player.getStackInHand(Hand.MAIN_HAND), payload.droneUuid().toString(), !DroneControllerItem.isDroneEnabled(player.getStackInHand(Hand.MAIN_HAND), payload.droneUuid().toString()));
+			DroneControllerItemServer.setDroneEnabled(player.getStackInHand(Hand.MAIN_HAND), payload.droneUuid().toString(), !DroneControllerItemServer.isDroneEnabled(player.getStackInHand(Hand.MAIN_HAND), payload.droneUuid().toString()));
 		}
 	}
 
