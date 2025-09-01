@@ -413,7 +413,7 @@ public class Drone extends MobEntity {
 
 	@Override
 	public boolean damage(ServerWorld world, DamageSource source, float amount) {
-		return false;
+		return super.damage(world, source, amount);
 	}
 
 	@Override
