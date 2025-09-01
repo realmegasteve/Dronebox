@@ -460,7 +460,7 @@ public class LuaTextFieldWidget extends ClickableWidget {
 
 		int y = lineY - MathHelper.floor(offsetPixels);
 		for (int idx = startIdx; idx < endIdx; idx++) {
-			//Draw selection
+
 			VisualSegment seg = this.allSegmentsCache.get(idx);
 			int segStart = seg.logicalStart;
 			int segEnd = seg.logicalStart + seg.content.length();
@@ -475,7 +475,7 @@ public class LuaTextFieldWidget extends ClickableWidget {
 				context.fill(xStart, y - 1, xEnd, y + this.lineHeight - 1, LUADefaults.SELECTION_COLOR);
 			}
 
-			//Draw cursor
+
 			boolean showCursor = this.isFocused() && ((Util.getMeasuringTimeMs() - this.lastSwitchFocusTime) % 1000L < 700);
 			if (logicalCursor >= segStart && logicalCursor <= segEnd) {
 				int cursorOffset = logicalCursor - segStart;
@@ -596,7 +596,6 @@ public class LuaTextFieldWidget extends ClickableWidget {
 		lineEndIdx = Math.max(0, Math.min(lineEndIdx, this.logicalText.length()));
 
 		String fullLine = (lineStartIdx < lineEndIdx) ? this.logicalText.substring(lineStartIdx, lineEndIdx) : "";
-		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		fullLine = fullLine.replaceAll(Pattern.quote("\t"), "⟹");
 
 		int segLocalStart = seg.logicalStart - lineStartIdx;
@@ -609,6 +608,7 @@ public class LuaTextFieldWidget extends ClickableWidget {
 		int drawX = baseX;
 
 		while (m.find()) {
+
 			if (m.start() > last) {
 				String plain = fullLine.substring(last, m.start());
 				int overlapStart = Math.max(last, segLocalStart);
@@ -623,8 +623,47 @@ public class LuaTextFieldWidget extends ClickableWidget {
 				drawX += getTextWidth(plain);
 			}
 
+			int matchedGroupIndex = -1;
+			String matchedText = null;
+			for (int gi = 1; gi <= m.groupCount(); gi++) {
+				try {
+					String g = m.group(gi);
+					if (g != null) { matchedGroupIndex = gi; matchedText = g; break; }
+				} catch (IllegalStateException ignored) { /* defensive */ }
+			}
+
+
 			String token = fullLine.substring(m.start(), m.end());
-			int color = LUADefaults.pickColorForMatch(m, token);
+
+
+			int color = LUADefaults.COLOR_DEFAULT;
+
+
+			try {
+				if (LUADefaults.runtimeColors != null) {
+					Integer rt = LUADefaults.runtimeColors.get(matchedText);
+					if (rt == null) rt = LUADefaults.runtimeColors.get(token);
+					if (rt != null) color = rt;
+				}
+			} catch (Throwable ignored) {}
+
+
+			if (color == LUADefaults.COLOR_DEFAULT && matchedText != null && matchedText.matches("\\w+\\s*[:.]+\\s*\\w+\\s*")) {
+				color = LUADefaults.getMethodCallColor(matchedText, token);
+			}
+
+
+			if (color == LUADefaults.COLOR_DEFAULT && matchedGroupIndex != -1) {
+				int idx = matchedGroupIndex - 1;
+				try {
+					if (LUADefaults.groupColors != null && idx >= 0 && idx < LUADefaults.groupColors.size()) {
+						color = LUADefaults.groupColors.get(idx);
+					}
+				} catch (Throwable ignored) {}
+			}
+
+			if (color == 0) color = LUADefaults.COLOR_DEFAULT;
+
 			int overlapStartToken = Math.max(m.start(), segLocalStart);
 			int overlapEndToken = Math.min(m.end(), segLocalEnd);
 			if (overlapStartToken < overlapEndToken) {
@@ -637,6 +676,7 @@ public class LuaTextFieldWidget extends ClickableWidget {
 			last = m.end();
 		}
 
+		
 		if (last < fullLine.length()) {
 			String trailing = fullLine.substring(last);
 			int overlapStart = Math.max(last, segLocalStart);
@@ -649,7 +689,6 @@ public class LuaTextFieldWidget extends ClickableWidget {
 			}
 		}
 	}
-
 
 
 	private void updateTextPosition() {

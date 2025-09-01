@@ -174,8 +174,12 @@ public class Drone extends MobEntity {
 		}
 	}
 
+
+
 	protected void onAccessoryReset() {
-		// Called when an accessory slot is emptied
+		if (this.getWorld() instanceof ServerWorld serverWorld) {
+			EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+		}
 	}
 
 	// === Normal Drone ===

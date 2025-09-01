@@ -46,6 +46,7 @@ public class LuaIDE extends Screen {
 	private ButtonWidget closeAndNotSaveButton;
 	private ButtonWidget cancelButton;
 	private ButtonWidget helpButton;
+	private ButtonWidget syntaxColorSettingsButton;
 	private MultilineTextWidget help;
 	private ButtonWidget closeHelpButton;
 
@@ -106,6 +107,14 @@ public class LuaIDE extends Screen {
 				setPythonOutputText(e.getMessage());
 			}
 		}).dimensions(40, 40, 80, 20).build();
+
+		syntaxColorSettingsButton = ButtonWidget.builder(Text.of("Syntax Colors"), btn -> {
+			// Open the new settings screen
+			MinecraftClient.getInstance().setScreen(new LuaSyntaxColorScreen(this));
+		}).dimensions(340, 40, 120, 20).build();
+
+		addDrawableChild(syntaxColorSettingsButton);
+
 
 		saveCodeButton = ButtonWidget.builder(Text.of("Save"), (btn) -> saveCode(pendrive, codeInput.getText()))
 			.dimensions(130, 40, 60, 20).build();
@@ -228,6 +237,7 @@ public class LuaIDE extends Screen {
 		closeHelpButton.visible = false;
 		subScreenOpen = false;
 		closeHelpButton.visible = false;
+		syntaxColorSettingsButton.visible = true;
 	}
 
 	private void openCloseDialog() {
@@ -241,9 +251,12 @@ public class LuaIDE extends Screen {
 		renameBox.setVisible(false);
 		cancelButton.visible = true;
 		drawConsole = false;
+		helpButton.visible = false;
+		syntaxColorSettingsButton.visible = false;
 	}
 
 	private void openHelpDialog() {
+		syntaxColorSettingsButton.visible = false;
 		saveAndCloseButton.visible = false;
 		closeAndNotSaveButton.visible = false;
 		codeInput.setVisible(false);
@@ -253,7 +266,6 @@ public class LuaIDE extends Screen {
 		renameOkButton.visible = false;
 		renameBox.setVisible(false);
 		cancelButton.visible = false;
-		help.visible = true;
 		drawConsole = false;
 		help.visible = true;
 		helpButton.visible = false;
