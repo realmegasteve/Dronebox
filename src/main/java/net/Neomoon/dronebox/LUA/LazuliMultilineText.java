@@ -235,13 +235,13 @@ public interface LazuliMultilineText {
 				if (this.lines != null && language == this.language) { return this.lines;}
 
 				this.language = language;
-				List<StringVisitable> list = new ArrayList();
+				List<StringVisitable> list = new ArrayList<>();
 
 				for (Text text : texts) {
 					list.addAll(renderer.wrapLinesWithoutLanguage(text, maxWidth));
 				}
 
-				this.lines = new ArrayList();
+				this.lines = new ArrayList<>();
 				int i = Math.min(list.size(), maxLines);
 				List<StringVisitable> list2 = list.subList(0, i);
 

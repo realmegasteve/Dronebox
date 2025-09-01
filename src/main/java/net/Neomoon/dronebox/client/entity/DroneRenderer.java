@@ -1,10 +1,11 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client.entity;
 
+import net.Neomoon.dronebox.Drone;
+import net.Neomoon.dronebox.EntityTextureRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import org.joml.Quaternionf;

@@ -1,7 +1,6 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import java.util.HashMap;
 import java.util.Map;

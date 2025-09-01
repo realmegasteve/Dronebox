@@ -1,6 +1,9 @@
 package net.Neomoon.dronebox.items;
 
 import net.Neomoon.dronebox.DroneboxMain;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -12,23 +15,21 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 
+import java.util.function.Function;
+
 public class ModItems {
 
 	public static final Item DRONE = registerItem("drone",
 		new DroneItem(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID, "drone")))));
 
-	public static final Item DRONE_CONTROLLER = registerItem("controller",
-		new DroneControllerItem(new Item.Settings().maxCount(1)
-			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"controller")))));
+	public static final Item DRONE_CONTROLLER;
 
 	public static final Item DRONE_REMOTE = registerItem("remote",
 		new DroneRemoteItem(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID, "remote")))));
 
-	public static final Item LUA_PENDRIVE = registerItem("lua_pendrive",
-		new LuaPendriveItem(new Item.Settings().maxCount(1)
-			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"lua_pendrive")))));
+	public static final Item LUA_PENDRIVE;
 
 	public static final Item EYE_ACCESSORY = registerItem("googly",
 		new Item(new Item.Settings().maxCount(1)
@@ -42,12 +43,12 @@ public class ModItems {
 		new Item(new Item.Settings().maxCount(1)
 			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"toplight")))));
 
-
-
 	public static final RegistryKey<ItemGroup> DRONEBOX_GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP,
 		Identifier.of(DroneboxMain.MOD_ID, "dronebox"));
 
-	private static ItemGroup DRONEBOX_GROUP = null;
+	private static final ItemGroup DRONEBOX_GROUP;
+
+	public static final ComponentType<ControllerComponent> CONTROLLER_COMPONENT = ComponentType.<ControllerComponent>builder().codec(ControllerComponent.CODEC).packetCodec(ControllerComponent.PACKET_CODEC).build();
 
 	private static Item registerItem(String name, Item item) {
 		return Registry.register(Registries.ITEM, Identifier.of(DroneboxMain.MOD_ID, name), item);
@@ -55,6 +56,30 @@ public class ModItems {
 
 	public static void registerModItems() {
 		DroneboxMain.LOGGER.info("Registering Mod Items for " + DroneboxMain.MOD_ID);
+
+		Registry.register(Registries.ITEM_GROUP, DRONEBOX_GROUP_KEY, DRONEBOX_GROUP);
+		Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(DroneboxMain.MOD_ID, "controller_component"), CONTROLLER_COMPONENT);
+	}
+
+	static {
+		Function<Item.Settings, Item> droneController;
+		Function<Item.Settings, Item> luaPendrive;
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			droneController = DroneControllerItem::new;
+			luaPendrive = LuaPendriveItem::new;
+		} else {
+			droneController = DroneControllerItem::new; // I'm relatively sure that you need this to be on server for some of the logic to work, unless we're just not using drone controllers
+			luaPendrive = Item::new;
+		}
+
+		DRONE_CONTROLLER = registerItem("controller", droneController.apply(
+			new Item.Settings().maxCount(1)
+				.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID,"controller"))))
+		);
+		LUA_PENDRIVE = registerItem("lua_pendrive", luaPendrive.apply(
+			new Item.Settings().maxCount(1)
+				.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(DroneboxMain.MOD_ID, "lua_pendrive"))))
+		);
 
 		DRONEBOX_GROUP = FabricItemGroup.builder()
 			.icon(() -> new ItemStack(DRONE_CONTROLLER))
@@ -69,7 +94,5 @@ public class ModItems {
 				entries.add(LUA_PENDRIVE);
 			})
 			.build();
-
-		Registry.register(Registries.ITEM_GROUP, DRONEBOX_GROUP_KEY, DRONEBOX_GROUP);
 	}
 }

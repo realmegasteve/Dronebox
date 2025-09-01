@@ -27,7 +27,7 @@ public class LuaPendriveItem extends Item {
 	public ActionResult use(World world, PlayerEntity player, Hand hand) {
 		if (player.isSneaking()) {
 			ItemStack stack = player.getStackInHand(hand);
-			MinecraftClient.getInstance().setScreen(new LuaIDE(Text.empty(), stack, linkedDrone));
+			if(world.isClient) MinecraftClient.getInstance().setScreen(new LuaIDE(Text.empty(), stack, linkedDrone));
 		}
 		return ActionResult.SUCCESS;
 	}

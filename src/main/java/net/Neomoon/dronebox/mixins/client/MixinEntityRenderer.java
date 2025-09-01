@@ -1,5 +1,4 @@
-package net.Neomoon.dronebox.mixins;
-
+package net.Neomoon.dronebox.mixins.client;
 
 import net.Neomoon.dronebox.FlareRenderManager;
 import net.minecraft.client.MinecraftClient;
@@ -11,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// WARNING: this mixin has not been added to the mixins.json!
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer<T extends Entity> {
 

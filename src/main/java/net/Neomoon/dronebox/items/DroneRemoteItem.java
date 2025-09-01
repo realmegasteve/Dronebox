@@ -11,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.server.world.ServerWorld;
@@ -127,7 +128,7 @@ public class DroneRemoteItem extends Item {
 		}
 
 		if (alreadyLinked) {
-			if (foundIndex >= 0) linkedDrones.remove(foundIndex);
+			linkedDrones.remove(foundIndex);
 			if (!player.getWorld().isClient) {
 				player.sendMessage(Text.literal("Drone removed from remote!"), true);
 			}
@@ -156,8 +157,8 @@ public class DroneRemoteItem extends Item {
 		NbtList listTag = root.getListOrEmpty(LINKED_LIST_KEY);
 
 		boolean modified = false;
-		for (int i = 0; i < listTag.size(); i++) {
-			if (listTag.get(i) instanceof NbtString nbtStr) {
+		for (NbtElement nbtElement : listTag) {
+			if (nbtElement instanceof NbtString nbtStr) {
 				String raw = nbtStr.asString().orElse("").trim();
 
 				if (raw.startsWith("\"") && raw.endsWith("\"") && raw.length() > 2) {

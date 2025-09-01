@@ -1,13 +1,11 @@
 package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
-import net.Neomoon.dronebox.items.DroneControllerItemServer;
 import net.Neomoon.dronebox.network.*;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 
@@ -15,35 +13,27 @@ import java.util.UUID;
 
 public final class DroneNetworking {
 	private DroneNetworking() {}
-public static void registerclient(){
-	PayloadTypeRegistry.playS2C().register(ViewUpdatePayload.ID, ViewUpdatePayload.CODEC);
-	ClientPlayNetworking.registerGlobalReceiver(ViewUpdatePayload.ID, (payload, context) -> {
-		ClientPlayerEntity player = context.player();
-		context.client().execute(() -> handleViewupdatePayload(player, payload));
-	});
-}
 
+	@SuppressWarnings("resource")
 	public static void register() {
 
 		PayloadTypeRegistry.playC2S().register(MoveC2SPayload.ID, MoveC2SPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ToggleC2SPayload.ID, ToggleC2SPayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(RequestCameraPayload.ID, RequestCameraPayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(CameraFramePayload.ID, CameraFramePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(ViewTogglePayload.ID, ViewTogglePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(DroneStatePayload.ID, DroneStatePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(DroneBatchPayload.ID, DroneBatchPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(RequestCameraC2SPayload.ID, RequestCameraC2SPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(ViewToggleC2SPayload.ID, ViewToggleC2SPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(DroneStateC2SPayload.ID, DroneStateC2SPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(DroneBatchC2SPayload.ID, DroneBatchC2SPayload.CODEC);
 
+		//PayloadTypeRegistry.playS2C().register(CameraFrameS2CPayload.ID, CameraFrameS2CPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(ViewUpdateS2CPayload.ID, ViewUpdateS2CPayload.CODEC);
 
-		ServerPlayNetworking.registerGlobalReceiver(DroneBatchPayload.ID, (payload, context) -> {
+		ServerPlayNetworking.registerGlobalReceiver(DroneBatchC2SPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();
-			context.server().execute(() -> {
-				for (DroneStatePayload droneState : payload.droneStates()) {
-					context.server().execute(() -> handleDroneStatePayload(player, droneState));
-				}
-			});
+			MinecraftServer server = context.server();
+			for (DroneStateC2SPayload droneState : payload.droneStates()) {
+				server.execute(() -> handleDroneStatePayload(player, droneState));
+			}
 		});
-
-
 
 		ServerPlayNetworking.registerGlobalReceiver(MoveC2SPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();
@@ -55,11 +45,12 @@ public static void registerclient(){
 			context.server().execute(() -> handleTogglePayload(player, payload));
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(RequestCameraPayload.ID, (payload, context) -> {
+		ServerPlayNetworking.registerGlobalReceiver(RequestCameraC2SPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();
 			context.server().execute(() -> handleCameraPayload(player, payload));
 		});
-		ServerPlayNetworking.registerGlobalReceiver(ViewTogglePayload.ID, (payload, context) -> {
+
+		ServerPlayNetworking.registerGlobalReceiver(ViewToggleC2SPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();
 			context.server().execute(() -> handleViewtogglePayload(player, payload));
 		});
@@ -75,7 +66,7 @@ public static void registerclient(){
 		}
 	}
 
-	private static void handleDroneStatePayload(ServerPlayerEntity player, DroneStatePayload payload) {
+	private static void handleDroneStatePayload(ServerPlayerEntity player, DroneStateC2SPayload payload) {
 		Entity e = findEntityByUUID(player, UUID.fromString(payload.drone()));
 		if (e instanceof Drone drone) {
 			drone.payload = payload;
@@ -84,30 +75,22 @@ public static void registerclient(){
 
 	private static void handleTogglePayload(ServerPlayerEntity player, ToggleC2SPayload payload) {
 		Entity e = findEntityByUUID(player, UUID.fromString(payload.droneUuid()));
-		if (e instanceof Drone drone) {
-			DroneControllerItemServer.setDroneEnabled(player.getStackInHand(Hand.MAIN_HAND), payload.droneUuid().toString(), !DroneControllerItemServer.isDroneEnabled(player.getStackInHand(Hand.MAIN_HAND), payload.droneUuid().toString()));
+		if (e instanceof Drone) {
+			DroneControllerItem.setDroneEnabled(player.getStackInHand(Hand.MAIN_HAND), payload.droneUuid(), !DroneControllerItem.isDroneEnabled(player.getStackInHand(Hand.MAIN_HAND), payload.droneUuid()));
 		}
 	}
 
-	private static void handleViewtogglePayload(ServerPlayerEntity player, ViewTogglePayload payload) {
-
-		ServerPlayNetworking.send(player, new ViewUpdatePayload(payload.target()));
-
-	}
-	private static void handleViewupdatePayload(ClientPlayerEntity player, ViewUpdatePayload payload) {
-
-		CameraManager.update(UUID.fromString(payload.target()), !CameraManager.DroneCamera);
-
+	private static void handleViewtogglePayload(ServerPlayerEntity player, ViewToggleC2SPayload payload) {
+		ServerPlayNetworking.send(player, new ViewUpdateS2CPayload(payload.target()));
 	}
 
-	private static void handleCameraPayload(ServerPlayerEntity player, RequestCameraPayload payload) {
+	private static void handleCameraPayload(ServerPlayerEntity player, RequestCameraC2SPayload payload) {
 		Entity e = findEntityByUUID(player, UUID.fromString(payload.droneUuid()));
 		if (e instanceof Drone drone) {
 
 			byte[] imageData = drone.renderCameraToBytes();
 
-
-			CameraFramePayload frame = new CameraFramePayload(drone.getUuidAsString(), imageData);
+			CameraFrameS2CPayload frame = new CameraFrameS2CPayload(drone.getUuidAsString(), imageData);
 			ServerPlayNetworking.send(player, frame);
 		}
 	}

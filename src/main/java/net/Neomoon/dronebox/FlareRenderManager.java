@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+// needs to be done on client otherwise this won't do anything
 public class FlareRenderManager {
 	private static final Set<UUID> enabled = new HashSet<>();
 

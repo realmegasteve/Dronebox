@@ -6,14 +6,14 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 
-public record ViewUpdatePayload(String target) implements CustomPayload {
+public record ViewUpdateS2CPayload(String target) implements CustomPayload {
 	public static final Identifier ID_RAW = Identifier.of("dronebox", "viewupdatetoggle");
-	public static final Id<ViewUpdatePayload> ID = new Id<>(ID_RAW);
+	public static final Id<ViewUpdateS2CPayload> ID = new Id<>(ID_RAW);
 
-	public static final PacketCodec<net.minecraft.network.RegistryByteBuf, ViewUpdatePayload> CODEC =
+	public static final PacketCodec<net.minecraft.network.RegistryByteBuf, ViewUpdateS2CPayload> CODEC =
 		PacketCodec.tuple(
-			PacketCodecs.STRING, ViewUpdatePayload::target,
-			ViewUpdatePayload::new
+			PacketCodecs.STRING, ViewUpdateS2CPayload::target,
+			ViewUpdateS2CPayload::new
 		);
 
 	@Override

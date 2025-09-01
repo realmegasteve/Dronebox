@@ -33,7 +33,7 @@
 			"net.Neomoon.dronebox.DroneboxMain"
 		],
 		"client": [
-			"net.Neomoon.dronebox.CentralDroneClient"
+          "net.Neomoon.dronebox.client.CentralDroneClient"
 		]
 	}
 }

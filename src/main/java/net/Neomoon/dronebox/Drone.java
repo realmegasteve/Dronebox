@@ -3,16 +3,10 @@ package net.Neomoon.dronebox;
 import net.Neomoon.dronebox.LUA.CustomRegexMarkersLUA;
 import net.Neomoon.dronebox.LUA.LUAObjects.*;
 import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
-import net.Neomoon.dronebox.items.MainModItemw;
 import net.Neomoon.dronebox.items.ModItems;
-import net.Neomoon.dronebox.network.DroneStatePayload;
-import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
-import net.Neomoon.dronebox.network.MoveC2SPayload;
+import net.Neomoon.dronebox.network.DroneStateC2SPayload;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.impl.particle.ExtendedBlockStateParticleEffectSync;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
@@ -64,7 +58,7 @@ public class Drone extends MobEntity {
 	public double forwardInput = 0;
 	public double yawInput = 0;
 	public double upInput = 0;
-	public DroneStatePayload payload;
+	public DroneStateC2SPayload payload;
 
 	public boolean accessoryState;
 
@@ -79,7 +73,7 @@ public class Drone extends MobEntity {
 	private static final ChunkTicketType DRONE_TICKET =
 		ChunkTicketType.PLAYER_SIMULATION;
 
-	public void setAcessory(boolean state) {
+	public void setAccessory(boolean state) {
 		accessoryState = state;
 	}
 
@@ -89,6 +83,8 @@ public class Drone extends MobEntity {
 	}
 	public interface AccessoryTick {
 		void tick(World world, UUID droneId, Drone drone);
+
+		AccessoryTick EMPTY = (world, droneId, drone) -> {};
 	}
 	public interface AccessoryRemove {
 		void remove(World world, UUID droneId, Drone drone);
@@ -178,8 +174,12 @@ public class Drone extends MobEntity {
 		}
 	}
 
+
+
 	protected void onAccessoryReset() {
-		// Called when an accessory slot is emptied
+		if (this.getWorld() instanceof ServerWorld serverWorld) {
+			EntityTextureRegistry.setTexture(serverWorld, uuid, CentralDroneInit.DRONE_ENTITY_TYPE, 0);
+		}
 	}
 
 	// === Normal Drone ===
@@ -258,12 +258,12 @@ public class Drone extends MobEntity {
 			}
 			if (accessoryState) {
 				if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) {
-					if (acc == MainModItemw.TOPLIGHT_ACCESSORY) {
+					if (acc == ModItems.TOPLIGHT_ACCESSORY) {
 						ServerWorld serverWorld = (ServerWorld) getWorld();
 						serverWorld.spawnParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
 					}
 
-					if (acc == MainModItemw.SPOTLIGHT_ACCESSORY) {
+					if (acc == ModItems.SPOTLIGHT_ACCESSORY) {
 						ServerWorld serverWorld = (ServerWorld) getWorld();
 						serverWorld.spawnParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
 					}
@@ -290,21 +290,9 @@ public class Drone extends MobEntity {
 
 		double yaw = this.getHeadYaw();
 		if (pythonLoaded) {
-			if (getWorld().isClient && pendriveOwner.equals(MinecraftClient.getInstance().player)) {
-				Vec3d velocity = this.getVelocity();
+			if (getWorld().isClient) { // modified by mixin
 				super.tick();
-				this.setVelocity(velocity);
-				runPython();
-				controllerMovementInput(0, 0, 0, 0);
-				physics();
-
-				DroneStatePayload p = new DroneStatePayload(uuid.toString(), getX(), getY(), getZ(), getVelocity().x, getVelocity().y, getVelocity().z, accessoryState);
-				DroneStatePayloadBatchesDispatcher.queuePayload(p);
-
-			} else {
-
 			}
-
 		} else {
 			//Controller logic
 			double yawRad = Math.toRadians(yaw);
@@ -425,7 +413,7 @@ public class Drone extends MobEntity {
 
 	@Override
 	public boolean damage(ServerWorld world, DamageSource source, float amount) {
-		return false;
+		return super.damage(world, source, amount);
 	}
 
 	@Override
@@ -492,7 +480,6 @@ public class Drone extends MobEntity {
 		this.pitch += this.pitchRate;
 		this.roll  += this.rollRate;
 
-
 	}
 
 	public double getRoll() {
@@ -501,7 +488,7 @@ public class Drone extends MobEntity {
 
 	@Override
 	public float getYaw() {
-		return (float) this.getHeadYaw();
+		return this.getHeadYaw();
 	}
 
 	public float getPitch() {
