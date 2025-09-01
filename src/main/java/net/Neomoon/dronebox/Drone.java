@@ -6,7 +6,9 @@ import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
 import net.Neomoon.dronebox.items.ModItems;
 import net.Neomoon.dronebox.network.DroneStateC2SPayload;
 import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
-import net.minecraft.client.MinecraftClient;
+import net.Neomoon.dronebox.network.MoveC2SPayload;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
@@ -253,8 +255,8 @@ public class Drone extends MobEntity {
 				}
 			}
 			if (accessoryState) {
-				if (!getWorld().isClient) {
-					if (acc == ModItems.TOPLIGHT_ACCESSORY) {
+				if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) {
+					if (acc == MainModItemw.TOPLIGHT_ACCESSORY) {
 						ServerWorld serverWorld = (ServerWorld) getWorld();
 						serverWorld.spawnParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
 					}
