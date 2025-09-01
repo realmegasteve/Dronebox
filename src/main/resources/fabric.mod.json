@@ -1,21 +1,21 @@
- {
+{
 	"schemaVersion": 1,
-	"id": "${modId}",
-	"version": "${version}",
-	"name": "${modName}",
-	"description": "${modDescription}",
+	"id": "dronebox",
+	"version": "1.1.2",
+	"name": "Drone Box",
+	"description": "A mod that adds drones to minecraft created for modfest: toybox",
 	"authors": [
-		"${authors}"
+		"AzuraNishio\nCopiCraft\nFlugi\nMatscalle(Megastevian)\nNeomoon"
 	],
 	"contributors": [
-		"${contributors}"
+		"AzuraNishio\nCopiCraft\nFlugi\nMatscalle(Megastevian)\nNeomoon"
 	],
 	"contact": {
 		"homepage": "${homepage}",
 		"issues": "${issues}",
 		"sources": "${sources}"
 	},
-	"license": "${license}",
+	"license": "ARR",
 	"icon": "assets/dronebox/icon.png",
 	"mixins": [
 		"dronebox.mixins.json"
@@ -29,7 +29,7 @@
 	},
 	"entrypoints": {
 		"main": [
-          "net.Neomoon.dronebox.CentralDroneInit",
+			"net.Neomoon.dronebox.CentralDroneInit",
 			"net.Neomoon.dronebox.DroneboxMain"
 		],
 		"client": [
