@@ -1,12 +1,15 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client;
 
-import net.Neomoon.dronebox.gui.DroneHUD;
+import net.Neomoon.dronebox.CentralDroneInit;
+import net.Neomoon.dronebox.client.entity.DroneModelLayers;
+import net.Neomoon.dronebox.client.entity.DroneRenderer;
+import net.Neomoon.dronebox.EntityTextureRegistry;
+import net.Neomoon.dronebox.client.gui.DroneHUD;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.items.ModItems;
-import net.Neomoon.dronebox.network.DroneBatchPayload;
-import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
-import net.Neomoon.dronebox.network.RequestCameraPayload;
+import net.Neomoon.dronebox.network.RequestCameraC2SPayload;
+import net.Neomoon.dronebox.network.ViewUpdateS2CPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -20,9 +23,12 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemStack;
 
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static net.Neomoon.dronebox.DroneboxMain.MOD_ID;
 
 public class CentralDroneClient implements ClientModInitializer {
 
@@ -31,17 +37,36 @@ public class CentralDroneClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		DroneStatePayloadBatchesDispatcher.initialize();
-		DroneNetworking.registerclient();
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 0, Identifier.of(MOD_ID, "textures/entity/drone.png"));
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 1, Identifier.of(MOD_ID, "textures/entity/drone_eyes.png"));
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 2, Identifier.of(MOD_ID, "textures/entity/drone_boosters.png"));
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 3, Identifier.of(MOD_ID, "textures/entity/drone_lamp.png"));
+		EntityTextureRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, 4, Identifier.of(MOD_ID, "textures/entity/drone_spot.png"));
+
 		DroneModelLayers.init();
 		Radio.register();
 
+		//DroneNetworking.registerclient();
+		DroneStatePayloadBatchesDispatcher.initialize();
+		ClientPlayNetworking.registerGlobalReceiver(ViewUpdateS2CPayload.ID, (payload, context) -> {
+			context.client().execute(() -> handleViewupdatePayload(payload));
+		});
+
+		//DroneNetworking.registerclient();
+		DroneStatePayloadBatchesDispatcher.initialize();
+		ClientPlayNetworking.registerGlobalReceiver(ViewUpdateS2CPayload.ID, (payload, context) -> {
+			context.client().execute(() -> handleViewupdatePayload(payload));
+		});
 
 		EntityRendererRegistry.register(CentralDroneInit.DRONE_ENTITY_TYPE, DroneRenderer::new);
 
 		ClientWorld world = MinecraftClient.getInstance().world;
 
 		HudRenderCallback.EVENT.register((DrawContext ctx, RenderTickCounter tickDelta) -> {
+			if (true) {
+				return; // end early because we don't want to be sending extraneous packets
+			}
+
 			MinecraftClient mc = MinecraftClient.getInstance();
 			if (mc == null || mc.player == null || mc.world == null) return;
 
@@ -60,7 +85,7 @@ public class CentralDroneClient implements ClientModInitializer {
 
 
 			try {
-				DroneHUD.renderHUD(ctx.getMatrices(), ctx);
+				DroneHUD.renderHUD(ctx);
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
@@ -76,7 +101,7 @@ public class CentralDroneClient implements ClientModInitializer {
 			PacketByteBuf buf = PacketByteBufs.create();
 			buf.writeInt(drones.size());
 			for (UUID u : drones) {
-				ClientPlayNetworking.send(new RequestCameraPayload(u.toString()));
+				ClientPlayNetworking.send(new RequestCameraC2SPayload(u.toString()));
 			}
 
 		} catch (Throwable t) {
@@ -125,5 +150,9 @@ public class CentralDroneClient implements ClientModInitializer {
 				t.printStackTrace();
 			}
 		});
+	}
+
+	private static void handleViewupdatePayload(ViewUpdateS2CPayload payload) {
+		CameraManager.update(UUID.fromString(payload.target()), !CameraManager.DroneCamera);
 	}
 }

@@ -9,17 +9,17 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayList;
 import java.util.List;
 
-public record DroneBatchPayload(
-    List<DroneStatePayload> droneStates
+public record DroneBatchC2SPayload(
+    List<DroneStateC2SPayload> droneStates
 ) implements CustomPayload {
     
-    public static final Id<DroneBatchPayload> ID = new Id<>(Identifier.of("dronebox", "batch_drone_state_c2s"));
+    public static final Id<DroneBatchC2SPayload> ID = new Id<>(Identifier.of("dronebox", "batch_drone_state_c2s"));
     
-    public static final PacketCodec<RegistryByteBuf, DroneBatchPayload> CODEC =
+    public static final PacketCodec<RegistryByteBuf, DroneBatchC2SPayload> CODEC =
         PacketCodec.tuple(
-            PacketCodecs.collection(ArrayList::new, DroneStatePayload.CODEC),
-            DroneBatchPayload::droneStates,
-            DroneBatchPayload::new
+            PacketCodecs.collection(ArrayList::new, DroneStateC2SPayload.CODEC),
+            DroneBatchC2SPayload::droneStates,
+            DroneBatchC2SPayload::new
         );
     
     @Override

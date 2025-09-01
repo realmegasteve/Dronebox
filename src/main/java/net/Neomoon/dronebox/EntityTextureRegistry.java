@@ -2,6 +2,7 @@ package net.Neomoon.dronebox;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.data.TrackedData;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 
@@ -35,12 +36,11 @@ public class EntityTextureRegistry {
 		if (entity instanceof Drone d) {
 			id = d.getDataTracker().get(Drone.TEXTURE_ID);
 		} else {
-
 			try {
 				var field = entity.getClass().getField("TEXTURE_ID");
 				Object val = field.get(null);
-				if (val instanceof net.minecraft.entity.data.TrackedData) {
-					id = entity.getDataTracker().get((net.minecraft.entity.data.TrackedData<Integer>) val);
+				if (val instanceof TrackedData<?>) {
+					id = entity.getDataTracker().get((TrackedData<Integer>) val);
 				}
 			} catch (Exception ignored) {}
 		}

@@ -600,7 +600,7 @@ public final class LUAMath {
 
 	public float fma(float a, float b, float c) {
 		if (Float.isFinite(a) && Float.isFinite(b) && Float.isFinite(c)) {
-			return (double)a != (double)0.0F && (double)b != (double)0.0F ? (new BigDecimal((double)a * (double)b)).add(new BigDecimal((double)c)).floatValue() : a * b + c;
+			return (double)a != (double)0.0F && (double)b != (double)0.0F ? (BigDecimal.valueOf((double) a * (double) b)).add(BigDecimal.valueOf(c)).floatValue() : a * b + c;
 		} else {
 			return (float)fma((double)a, (double)b, (double)c);
 		}

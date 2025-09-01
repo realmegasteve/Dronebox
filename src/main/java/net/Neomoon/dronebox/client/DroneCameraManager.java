@@ -1,12 +1,7 @@
-package net.Neomoon.dronebox;
+package net.Neomoon.dronebox.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.Neomoon.dronebox.gui.DroneHUD;
+import net.Neomoon.dronebox.client.gui.DroneHUD;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.SimpleFramebuffer;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.util.ScreenshotRecorder;
-import net.minecraft.client.texture.NativeImage;
 import net.minecraft.entity.Entity;
 
 import java.util.HashMap;
@@ -46,7 +41,6 @@ public final class DroneCameraManager {
 			if (target == null || target.isRemoved()) {
 				it.remove();
 				DroneHUD.updateDroneImage(slot, null);
-				continue;
 			}
 		}
 	}

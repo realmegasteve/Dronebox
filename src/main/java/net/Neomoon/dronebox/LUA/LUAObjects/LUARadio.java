@@ -1,6 +1,6 @@
 package net.Neomoon.dronebox.LUA.LUAObjects;
 
-import net.Neomoon.dronebox.Radio;
+import net.Neomoon.dronebox.client.Radio;
 
 public class LUARadio {
 	 public void sendSignal(String channel, double value){

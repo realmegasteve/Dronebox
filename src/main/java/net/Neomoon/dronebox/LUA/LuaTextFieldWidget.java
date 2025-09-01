@@ -131,10 +131,11 @@ public class LuaTextFieldWidget extends ClickableWidget {
 
 
 	public void setChangedListener(Consumer<String> changedListener) { this.changedListener = changedListener; }
+
 	public void setRenderTextProvider(BiFunction<String, Integer, OrderedText> renderTextProvider) { this.renderTextProvider = renderTextProvider; }
 	protected MutableText getNarrationMessage() {
 		Text t = this.getMessage();
-		return Text.translatable("gui.narrate.editBox", new Object[]{t, this.text});
+		return Text.translatable("gui.narrate.editBox", t, this.text);
 	}
 
 	public void setText(String text) {
@@ -529,12 +530,8 @@ public class LuaTextFieldWidget extends ClickableWidget {
 		}
 	}
 
-	private static class VisualSegment {
-		final int logicalStart;
-		final String content;
-		VisualSegment(int logicalStart, String content) { this.logicalStart = logicalStart; this.content = content; }
+	private record VisualSegment(int logicalStart, String content) {
 	}
-
 
 	private void buildVisualSegmentsFull() {
 		this.allSegmentsCache = new ArrayList<>();
@@ -664,7 +661,7 @@ public class LuaTextFieldWidget extends ClickableWidget {
 			if (this.logicalToOrig != null && this.firstLogicalIndex >= 0 && this.firstLogicalIndex < this.logicalToOrig.size()) {
 				this.firstCharacterIndex = this.logicalToOrig.get(this.firstLogicalIndex);
 			} else if (this.logicalToOrig != null && !this.logicalToOrig.isEmpty()) {
-				this.firstCharacterIndex = this.logicalToOrig.get(this.logicalToOrig.size() - 1);
+				this.firstCharacterIndex = this.logicalToOrig.getLast();
 			} else this.firstCharacterIndex = 0;
 		}
 	}
@@ -703,13 +700,17 @@ public class LuaTextFieldWidget extends ClickableWidget {
 		if (this.logicalToOrig != null && this.firstLogicalIndex < this.logicalToOrig.size()) {
 			this.firstCharacterIndex = this.logicalToOrig.get(Math.max(0, Math.min(this.firstLogicalIndex, this.logicalToOrig.size() - 1)));
 		} else if (this.logicalToOrig != null && !this.logicalToOrig.isEmpty()) {
-			this.firstCharacterIndex = this.logicalToOrig.get(this.logicalToOrig.size() - 1);
+			this.firstCharacterIndex = this.logicalToOrig.getLast();
 		} else this.firstCharacterIndex = 0;
 	}
 
 	public void setFocusUnlocked(boolean focusUnlocked) { this.focusUnlocked = focusUnlocked; }
+
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public boolean isVisible() { return this.visible; }
+
 	public void setVisible(boolean visible) { this.visible = visible; }
+
 	public void setSuggestion(@Nullable String suggestion) { this.suggestion = suggestion; }
 
 	public int getCharacterX(int index) {

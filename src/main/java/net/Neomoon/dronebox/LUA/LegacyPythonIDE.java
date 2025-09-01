@@ -67,7 +67,7 @@ public class LegacyPythonIDE extends Screen {
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
 
-		context.drawText(this.textRenderer, "Python IDE", 40, 10 - this.textRenderer.fontHeight - 10, 0xFFFFFFFF, true);
+		context.drawText(this.textRenderer, "Python IDE", 40, -this.textRenderer.fontHeight, 0xFFFFFFFF, true);
 
 		codeOutputLog.setMessage(Text.of(output));
 
