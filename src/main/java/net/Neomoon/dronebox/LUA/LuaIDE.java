@@ -26,8 +26,6 @@ public class LuaIDE extends Screen {
 	private MinecraftLuaInterpreter lua;
 	private Drone drone;
 
-
-
 	private String output = "*Empty*";
 	private MultilineTextWidget codeOutputLog;
 	private boolean closeFr = false;
@@ -35,7 +33,6 @@ public class LuaIDE extends Screen {
 	private boolean saved = true;
 	private boolean subScreenOpen = false;
 
-	// Widgets
 	private ButtonWidget renameOkButton;
 	private LuaTextFieldWidget codeInput;
 	private TextFieldWidget renameBox;
@@ -49,13 +46,6 @@ public class LuaIDE extends Screen {
 	private ButtonWidget syntaxColorSettingsButton;
 	private MultilineTextWidget help;
 	private ButtonWidget closeHelpButton;
-
-
-
-
-
-
-
 
 	private String lastText;
 
@@ -72,7 +62,8 @@ public class LuaIDE extends Screen {
 
 	@Override
 	protected void init() {
-		// Load code from pendrive
+		super.init();
+
 		NbtComponent comp = pendrive.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 		NbtCompound root = comp.copyNbt();
 		String loadedCode = root.getString("code", LUADefaults.presetPythonCode.replaceAll(Pattern.quote("\t"), CustomRegexMarkersLUA.tabMarker)
@@ -84,12 +75,10 @@ public class LuaIDE extends Screen {
 				.replaceAll(Pattern.quote("\n"), CustomRegexMarkersLUA.returnMarker);
 		}
 
-		// Code editor
 		codeInput = new LuaTextFieldWidget(this.textRenderer, 40, 70, 500, 200, Text.of("Python Code"));
 		codeInput.setMaxLength(Integer.MAX_VALUE);
 		codeInput.setText(loadedCode);
 
-		// Rename dialog
 		renameBox = new TextFieldWidget(this.textRenderer, 100, 100, 100, 20, Text.literal("name"));
 		renameBox.setVisible(false);
 		renameOkButton = ButtonWidget.builder(Text.of("Ok"), (btn) -> {
@@ -98,7 +87,6 @@ public class LuaIDE extends Screen {
 		}).dimensions(210, 100, 20, 20).build();
 		renameOkButton.visible = false;
 
-		// Action buttons
 		simulateCodeButton = ButtonWidget.builder(Text.of("Run Test"), (btn) -> {
 			try {
 				drone.loadPythonScript(codeInput.getText().replaceAll(Pattern.quote(CustomRegexMarkersLUA.tabMarker), "\t")
@@ -109,12 +97,10 @@ public class LuaIDE extends Screen {
 		}).dimensions(40, 40, 80, 20).build();
 
 		syntaxColorSettingsButton = ButtonWidget.builder(Text.of("Syntax Colors"), btn -> {
-			// Open the new settings screen
 			MinecraftClient.getInstance().setScreen(new LuaSyntaxColorScreen(this));
 		}).dimensions(340, 40, 120, 20).build();
 
 		addDrawableChild(syntaxColorSettingsButton);
-
 
 		saveCodeButton = ButtonWidget.builder(Text.of("Save"), (btn) -> saveCode(pendrive, codeInput.getText()))
 			.dimensions(130, 40, 60, 20).build();
@@ -146,7 +132,7 @@ public class LuaIDE extends Screen {
 		help.visible = false;
 
 		closeHelpButton.visible = false;
-		// Confirm close dialog
+
 		saveAndCloseButton = ButtonWidget.builder(Text.of("Save code and close"), (btn) -> {
 			saveCode(pendrive, codeInput.getText());
 			this.close();
@@ -163,10 +149,8 @@ public class LuaIDE extends Screen {
 		}).dimensions(200, 165, 250, 20).build();
 		cancelButton.visible = false;
 
-		// Code output log
 		codeOutputLog = new MultilineTextWidget(Text.of(output), this.textRenderer);
 
-		// Add widgets
 		addDrawableChild(codeInput);
 		addDrawableChild(simulateCodeButton);
 		addDrawableChild(saveCodeButton);
@@ -209,7 +193,6 @@ public class LuaIDE extends Screen {
 		try {
 			help.setY((int) Math.round(mouseY * -0.1) + 40);
 		} catch (Exception e) {
-			// TODO: exception handing
 		}
 	}
 
@@ -272,8 +255,6 @@ public class LuaIDE extends Screen {
 		subScreenOpen = true;
 		closeHelpButton.visible = true;
 	}
-
-
 
 	@Override
 	public void close() {
