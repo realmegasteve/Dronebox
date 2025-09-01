@@ -1,7 +1,6 @@
 package net.Neomoon.dronebox;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
-import net.Neomoon.dronebox.items.DroneControllerItemServer;
 import net.Neomoon.dronebox.network.*;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;

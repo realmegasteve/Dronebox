@@ -133,6 +133,7 @@ public class KeyInterceptor {
 			this.others.clear();
 		}
 
+		@SuppressWarnings("unused")
 		public void addAll(Collection<? extends KeyBinding> keyBindings) {
 			this.others.addAll(keyBindings);
 		}

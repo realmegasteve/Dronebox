@@ -5,8 +5,6 @@ import net.Neomoon.dronebox.LUA.LUAObjects.*;
 import net.Neomoon.dronebox.LUA.MinecraftLuaInterpreter;
 import net.Neomoon.dronebox.items.ModItems;
 import net.Neomoon.dronebox.network.DroneStateC2SPayload;
-import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
-import net.Neomoon.dronebox.network.MoveC2SPayload;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.DataComponentTypes;
@@ -256,7 +254,7 @@ public class Drone extends MobEntity {
 			}
 			if (accessoryState) {
 				if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) {
-					if (acc == MainModItemw.TOPLIGHT_ACCESSORY) {
+					if (acc == ModItems.TOPLIGHT_ACCESSORY) {
 						ServerWorld serverWorld = (ServerWorld) getWorld();
 						serverWorld.spawnParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
 					}
@@ -288,21 +286,9 @@ public class Drone extends MobEntity {
 
 		double yaw = this.getHeadYaw();
 		if (pythonLoaded) {
-			if (getWorld().isClient && pendriveOwner.equals(MinecraftClient.getInstance().player)) {
-				Vec3d velocity = this.getVelocity();
+			if (getWorld().isClient) { // modified by mixin
 				super.tick();
-				this.setVelocity(velocity);
-				runPython();
-				controllerMovementInput(0, 0, 0, 0);
-				physics();
-
-				DroneStateC2SPayload p = new DroneStateC2SPayload(uuid.toString(), getX(), getY(), getZ(), getVelocity().x, getVelocity().y, getVelocity().z, accessoryState);
-				DroneStatePayloadBatchesDispatcher.queuePayload(p);
-
-			} else {
-
 			}
-
 		} else {
 			//Controller logic
 			double yawRad = Math.toRadians(yaw);

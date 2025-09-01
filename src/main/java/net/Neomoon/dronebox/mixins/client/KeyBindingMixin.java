@@ -37,6 +37,7 @@ public class KeyBindingMixin {
 			return original.call(instance, k, v);
 		}
 		if (keyBinding instanceof KeyInterceptor.MultiKeyBinding multiKeyBinding) {
+			multiKeyBinding.clearOthers();
 			KEYS_BY_ID.values().forEach(other -> {
 				if (other instanceof KeyInterceptor.MultiKeyBinding) {
 					return;

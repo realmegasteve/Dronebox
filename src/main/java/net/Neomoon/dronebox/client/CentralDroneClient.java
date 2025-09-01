@@ -8,7 +8,6 @@ import net.Neomoon.dronebox.client.gui.DroneHUD;
 
 import net.Neomoon.dronebox.items.DroneControllerItem;
 import net.Neomoon.dronebox.items.ModItems;
-import net.Neomoon.dronebox.network.DroneStatePayloadBatchesDispatcher;
 import net.Neomoon.dronebox.network.RequestCameraC2SPayload;
 import net.Neomoon.dronebox.network.ViewUpdateS2CPayload;
 import net.fabricmc.api.ClientModInitializer;

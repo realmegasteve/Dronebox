@@ -1,24 +1,25 @@
 {
-	"required": true,
-	"minVersion": "0.8",
-	"package": "net.Neomoon.dronebox.mixins",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"LuaUserdataFilteringMixin"
-	],
-	"client": [
-		"client.ControlsListWidgetMixin",
-		"client.ControlsListWidgetMixin$KeyBindingEntryMixin",
-		"client.DroneControllerItemMixin",
-		"client.EntityRenderDispatcherMixin",
-		"client.HeldItemRendererMixin",
-		"client.KeyBindingAccessor",
-		"client.KeyBindingMixin",
-		"client.MinecraftClientMixin"
-	],
-	"server": [
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.Neomoon.dronebox.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LuaUserdataFilteringMixin"
+  ],
+  "client": [
+    "client.ControlsListWidgetMixin",
+    "client.ControlsListWidgetMixin$KeyBindingEntryMixin",
+    "client.DroneControllerItemMixin",
+    "client.DroneMixin",
+    "client.EntityRenderDispatcherMixin",
+    "client.HeldItemRendererMixin",
+    "client.KeyBindingAccessor",
+    "client.KeyBindingMixin",
+    "client.MinecraftClientMixin"
+  ],
+  "server": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }

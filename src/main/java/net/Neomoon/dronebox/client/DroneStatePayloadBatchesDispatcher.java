@@ -1,5 +1,7 @@
-package net.Neomoon.dronebox.network;
+package net.Neomoon.dronebox.client;
 
+import net.Neomoon.dronebox.network.DroneBatchC2SPayload;
+import net.Neomoon.dronebox.network.DroneStateC2SPayload;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
