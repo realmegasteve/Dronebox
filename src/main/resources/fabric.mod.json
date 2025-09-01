@@ -16,7 +16,7 @@
 		"sources": "${sources}"
 	},
 	"license": "${license}",
-	"icon": "assets/${modId}/icon.png",
+	"icon": "assets/dronebox/icon.png",
 	"mixins": [
 		"dronebox.mixins.json"
 	],
