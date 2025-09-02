@@ -59,6 +59,10 @@ public class LUADefaults {
         radio:read(channel) → value
         radio:readOrDefault(channel, default) → value
         radio:signalExist(channel) → boolean
+    Chat object
+        chat:last() → last message string
+        chat:getMessage(index) → message index counting backyards string
+		
 """);
 
 

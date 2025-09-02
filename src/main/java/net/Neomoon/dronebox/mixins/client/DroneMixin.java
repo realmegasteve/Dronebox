@@ -29,15 +29,6 @@ public abstract class DroneMixin extends MobEntity {
 	@Shadow(remap = false)
 	public boolean accessoryState;
 
-	@Shadow(remap = false)
-	protected abstract void runPython();
-
-	@Shadow(remap = false)
-	public abstract void controllerMovementInput(double forward, double strafe, double up, double yaw);
-
-	@Shadow(remap = false)
-	protected abstract void physics();
-
 	protected DroneMixin(EntityType<? extends MobEntity> entityType, World world) {
 		super(entityType, world);
 	}
@@ -50,9 +41,9 @@ public abstract class DroneMixin extends MobEntity {
 		Vec3d velocity = this.getVelocity();
 		original.call(instance);
 		this.setVelocity(velocity);
-		runPython();
-		controllerMovementInput(0, 0, 0, 0);
-		physics();
+		instance.runPython();
+		instance.controllerMovementInput(0, 0, 0, 0);
+		instance.physics();
 		DroneStateC2SPayload p = new DroneStateC2SPayload(uuid.toString(), getX(), getY(), getZ(), getVelocity().x, getVelocity().y, getVelocity().z, this.accessoryState);
 		DroneStatePayloadBatchesDispatcher.queuePayload(p);
 	}

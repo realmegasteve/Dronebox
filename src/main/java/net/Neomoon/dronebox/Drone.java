@@ -24,6 +24,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.ReadView;
@@ -93,6 +94,8 @@ public class Drone extends MobEntity {
 	private static final Map<Item, List<AccessoryApply>> APPLY_HANDLERS = new HashMap<>();
 	private static final Map<Item, List<AccessoryTick>> TICK_HANDLERS = new HashMap<>();
 	private static final Map<Item, List<AccessoryRemove>> REMOVE_HANDLERS = new HashMap<>();
+
+	private Vec3d lastPos = Vec3d.ZERO;
 
 	private final Map<Item, Integer> equippedAccessories = new HashMap<>();
 
@@ -203,6 +206,8 @@ public class Drone extends MobEntity {
 		Lua.set(new LUAController(this), "Controller");
 		Lua.set(new LUARadio(), "Radio");
 		Lua.set(new LUAMath(), "Math");
+		Lua.set(new LUAChat(), "Chat");
+		Lua.set(new LUAChat(), "chat");
 	}
 
 	public void controllerMovementInput(double forward, double strafe, double up, double yaw){
@@ -249,6 +254,7 @@ public class Drone extends MobEntity {
 
 	@Override
 	public void tick() {
+		fallDistance = 0;
 		// Tick accessories
 		for (Item acc : equippedAccessories.keySet()) {
 			if (TICK_HANDLERS.containsKey(acc)) {
@@ -258,19 +264,27 @@ public class Drone extends MobEntity {
 			}
 			if (accessoryState) {
 				if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) {
+					ServerWorld serverWorld = (ServerWorld) getWorld();
+					Vec3d interpolate = this.getPos().add(lastPos).multiply(0.5);
 					if (acc == ModItems.TOPLIGHT_ACCESSORY) {
-						ServerWorld serverWorld = (ServerWorld) getWorld();
-						serverWorld.spawnParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
+						for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+							serverWorld.spawnParticles(player, ParticleTypes.END_ROD, true, true, interpolate.getX(), interpolate.getY() + 0.2, interpolate.getZ(), 1, 0.03, 0.03, 0.03, 0);
+							serverWorld.spawnParticles(player, ParticleTypes.END_ROD, true, true, this.getX(), this.getY() + 0.2, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
+						}
 					}
 
 					if (acc == ModItems.SPOTLIGHT_ACCESSORY) {
-						ServerWorld serverWorld = (ServerWorld) getWorld();
-						serverWorld.spawnParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
+						for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+							serverWorld.spawnParticles(player, ParticleTypes.END_ROD, true, true, interpolate.getX(), interpolate.getY() - 0.3, interpolate.getZ(), 1, 0.03, 0.03, 0.03, 0);
+							serverWorld.spawnParticles(player, ParticleTypes.END_ROD, true, true, this.getX(), this.getY() - 0.3, this.getZ(), 1, 0.03, 0.03, 0.03, 0);
+						}
 					}
 				}
 			}
 
 		}
+
+		lastPos = getPos();
 
 		if (!this.getWorld().isClient() && this.getWorld() instanceof ServerWorld serverWorld) {
 			ChunkPos center = new ChunkPos(this.getBlockPos());
@@ -436,7 +450,7 @@ public class Drone extends MobEntity {
 		this.rollRate = rollRate;
 	}
 
-	private void runPython(){
+	public void runPython(){
 		if (getWorld().isClient) {
 			NbtComponent comp = this.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
 			NbtCompound root = comp.copyNbt();
@@ -455,16 +469,22 @@ public class Drone extends MobEntity {
 		}
 	}
 
-	private void physics(){
+	public void physics(){
 		Vec3d velocity = this.getVelocity();
 		double speed = velocity.length();
 
-		double dragCoefficient = 0.07;
+		double dragCoefficient = 0.05;
+
+		if (isOnGround()){
+			velocity.add(0,-velocity.y,0);
+			dragCoefficient = 2;
+		}
+
 		double dragMagnitude = dragCoefficient * speed * speed;
 
 		Vec3d dragForce = velocity.normalize().multiply(-dragMagnitude);
 
-		velocity = velocity.add(dragForce.multiply(0.002));
+		velocity = velocity.add(dragForce);
 
 		velocity = velocity.add(new Vec3d(0, -0.02, 0));
 
